@@ -1,0 +1,170 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "1.0.0",
+  "disclaimer": "Unofficial helper in plain language for a first Alpha Strike game. The official free Quick-Start PDF is at battletech.com/downloads. BattleTech and Alpha Strike are trademarks of their respective owners.",
+  "topics": [
+    {
+      "id": "how-to-play",
+      "title": "If you’ve never played a tabletop wargame",
+      "screenId": "rules.as.howto",
+      "sections": [
+        {
+          "heading": "What you actually do",
+          "body": "Two people sit at a table with plastic robots ('Mechs). You take turns moving them with a tape measure and rolling two six-sided dice to shoot. This phone does not move the models — you do. It just tells you whose turn it is and keeps score."
+        },
+        {
+          "heading": "A lance is a team",
+          "body": "Side A and Side B each control two 'Mechs in Ridge Line. That’s a small “lance.” Sit so you can both see the same phone."
+        },
+        {
+          "heading": "Armor then Structure",
+          "body": "Armor is the outer layer of hit points. Structure is the inner layer. Damage chips armor first. When Structure hits 0, that 'Mech is wrecked (it may still shoot until you Clean up)."
+        },
+        {
+          "heading": "You need to roll this number or higher",
+          "body": "The app adds up a target number. Roll two dice and add them. If your total is at least that number, you hit. The app then subtracts damage for you."
+        }
+      ]
+    },
+    {
+      "id": "turn",
+      "title": "One turn, four steps",
+      "screenId": "rules.as.turn",
+      "sections": [
+        {
+          "heading": "1. Roll dice (initiative)",
+          "body": "Each side rolls two dice. Highest total wins. The winner goes last when moving and shooting — they get to see what the other side did first. Same totals? Both roll again."
+        },
+        {
+          "heading": "2. Move",
+          "body": "The side that lost the dice roll moves a miniature first. Then the other side. Keep alternating until every 'Mech has moved. Measure in inches from where the base starts to where it ends."
+        },
+        {
+          "heading": "3. Shoot",
+          "body": "The side that lost the dice roll shoots with all of its 'Mechs first (one shot each), then the winner. Measure range base-edge to base-edge. Damage is applied right away, but wrecked 'Mechs stay until Clean up — they can still shoot this turn."
+        },
+        {
+          "heading": "4. Clean up",
+          "body": "Take wrecked 'Mechs off the table. The app checks whether someone won. If not, start a new turn at Roll dice. Ridge Line lasts at most 6 turns."
+        }
+      ]
+    },
+    {
+      "id": "movement",
+      "title": "How far can it go?",
+      "screenId": "rules.as.movement",
+      "sections": [
+        {
+          "heading": "Walk, stand, sprint, or jump",
+          "body": "Walk: up to the Move number on the card (inches). Stand still: less than 1 inch — easier to shoot afterward. Sprint: about 1½× Move, but it cannot shoot this turn. Jump: use the jump number on the card; jumping ignores most terrain but makes shooting harder."
+        },
+        {
+          "heading": "Woods (this first game)",
+          "body": "Trees cost extra inches to walk through, and shots into or through woods are a little harder. Skip hills, water, and buildings in Ridge Line."
+        },
+        {
+          "heading": "Don’t stack",
+          "body": "You can walk through your own 'Mechs but not enemies. Two 'Mechs cannot end on top of each other — the whole base needs space."
+        }
+      ]
+    },
+    {
+      "id": "combat",
+      "title": "Can I even shoot?",
+      "screenId": "rules.as.combat",
+      "sections": [
+        {
+          "heading": "See it, face it, reach it",
+          "body": "You need a mostly-clear view of the target, it should be in front of your 'Mech (not mostly behind it), and it must be within 42 inches. Measure base edge to base edge."
+        },
+        {
+          "heading": "Touching bases",
+          "body": "If two 'Mechs are touching, measure the gap as short range. This mission has no punching. You still shoot if you can see them and they are in front."
+        },
+        {
+          "heading": "One shot per 'Mech per turn",
+          "body": "Each 'Mech fires once, then it’s done until next turn."
+        }
+      ]
+    },
+    {
+      "id": "sator",
+      "title": "How the to-hit number is built",
+      "screenId": "rules.as.satorRef",
+      "sections": [
+        {
+          "heading": "You don’t have to memorize this",
+          "body": "The Attack screen adds it up. Official name: SATOR — Skill + how you moved + how they moved + extras (woods, cover) + range. Roll two dice; equal or higher hits."
+        },
+        {
+          "heading": "Range in inches",
+          "body": "Up to 6\": easiest. More than 6\" up to 24\": a bit harder. More than 24\" up to 42\": harder still. Farther than 42\": no shot."
+        },
+        {
+          "heading": "If the number is 13 or more",
+          "body": "The shot always misses. Rolling two 6s (a 12) is not an automatic hit — but if a 12 does hit, you also roll a critical even if only Armor was damaged."
+        }
+      ]
+    },
+    {
+      "id": "damage",
+      "title": "Hits, wrecks, and criticals",
+      "screenId": "rules.as.damage",
+      "sections": [
+        {
+          "heading": "Where damage goes",
+          "body": "Subtract from Armor first. Leftover goes to Structure. If any Structure is marked, roll a critical (two dice) — the app has a screen for that. Structure 0 = wrecked at Clean up."
+        },
+        {
+          "heading": "Heat",
+          "body": "Ridge Line does not let you overheat for extra damage. An engine critical still adds heat, up to 4, and later shots get harder."
+        },
+        {
+          "heading": "Criticals in one sentence",
+          "body": "An extra roll that can jam weapons, hurt the engine, or destroy the 'Mech. Follow the app; you don’t need the table memorized."
+        }
+      ]
+    },
+    {
+      "id": "tables",
+      "title": "Quick numbers (optional)",
+      "screenId": "rules.as.tables",
+      "sections": [
+        {
+          "heading": "If you moved…",
+          "body": "Stood still: −1 to your shot. Walked: no change. Jumped: +2 to your shot. Sprinted: you cannot shoot."
+        },
+        {
+          "heading": "If they moved…",
+          "body": "Walked or sprinted: add their “harder to hit” number. Stood still: +0. Jumped: that number +1. Immobile: −4 (much easier)."
+        },
+        {
+          "heading": "Common extras",
+          "body": "Woods +1. Partial cover +1. Each fire-control critical +2."
+        }
+      ]
+    },
+    {
+      "id": "abbreviations",
+      "title": "Weird letters on the card",
+      "screenId": "rules.as.abbreviations",
+      "sections": [
+        {
+          "heading": "You can ignore most of these in Ridge Line",
+          "body": "ENE or CASE: ammo explosions don’t destroy you. MV: how many inches you walk. TMM: extra number when someone shoots at you (the app calls this “harder to hit”). S/M/L: damage at short / medium / long range. A/S: Armor / Structure. Skill: usually 4 — the starting number for shots."
+        }
+      ]
+    },
+    {
+      "id": "odds",
+      "title": "Dice odds (optional)",
+      "screenId": "rules.as.odds",
+      "sections": [
+        {
+          "heading": "Chance to roll this number or higher on two dice",
+          "body": "2: always. 3: 97%. 4: 92%. 5: 83%. 6: 72%. 7: 58%. 8: 42%. 9: 28%. 10: 17%. 11: 8%. 12: 3%. 13+: never."
+        }
+      ]
+    }
+  ]
+}

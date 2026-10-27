@@ -1,0 +1,72 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "1.0.0",
+  "entries": [
+    {
+      "roll": 2,
+      "id": "ammo",
+      "title": "Ammo hit",
+      "effect": "Destroyed unless the card shows ENE, CASE, or CASEII."
+    },
+    {
+      "roll": 3,
+      "id": "engine",
+      "title": "Engine hit",
+      "effect": "Gains 1 heat whenever it fires. A second engine hit destroys it."
+    },
+    {
+      "roll": 4,
+      "id": "fireControl",
+      "title": "Fire control",
+      "effect": "+2 to its target numbers, cumulative."
+    },
+    {
+      "roll": 5,
+      "id": "none",
+      "title": "No critical",
+      "effect": "No effect."
+    },
+    {
+      "roll": 6,
+      "id": "weapon",
+      "title": "Weapon hit",
+      "effect": "All damage values (S/M/L) drop by 1 (floor 0)."
+    },
+    {
+      "roll": 7,
+      "id": "mp",
+      "title": "MP hit",
+      "effect": "Halve MV and TMM, rounding down."
+    },
+    {
+      "roll": 8,
+      "id": "weapon",
+      "title": "Weapon hit",
+      "effect": "All damage values (S/M/L) drop by 1 (floor 0)."
+    },
+    {
+      "roll": 9,
+      "id": "none",
+      "title": "No critical",
+      "effect": "No effect."
+    },
+    {
+      "roll": 10,
+      "id": "fireControl",
+      "title": "Fire control",
+      "effect": "+2 to its target numbers, cumulative."
+    },
+    {
+      "roll": 11,
+      "id": "engine",
+      "title": "Engine hit",
+      "effect": "Gains 1 heat whenever it fires. A second engine hit destroys it."
+    },
+    {
+      "roll": 12,
+      "id": "destroyed",
+      "title": "Destroyed",
+      "effect": "Remove it at the end of the turn."
+    }
+  ]
+}

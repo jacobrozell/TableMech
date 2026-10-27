@@ -1,0 +1,1993 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Alpha Strike — Ridge Line Walkthrough</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --hull:#1b2026; --plate:#242c35; --plate-hi:#2c3641; --etch:#3b4753;
+  --readout:#dae3ea; --muted:#8d9aa8; --signal:#ffb228; --coolant:#4fb0c6;
+  --damage:#e2564a; --struct:#c0392b;
+  --display:"Chakra Petch","Arial Narrow",Impact,system-ui,sans-serif;
+  --body:"IBM Plex Sans",system-ui,-apple-system,Segoe UI,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--hull);color:var(--readout);font-family:var(--body);
+  font-size:15px;line-height:1.55;-webkit-text-size-adjust:100%}
+.wrap{max-width:1080px;margin:0 auto;padding:0 16px 60px}
+
+header.top{border-bottom:1px solid var(--etch);background:linear-gradient(180deg,#20272f,#1b2026)}
+.top-inner{max-width:1080px;margin:0 auto;padding:18px 16px 14px}
+h1{font-family:var(--display);font-weight:700;font-size:clamp(23px,5vw,38px);
+  letter-spacing:.06em;text-transform:uppercase;margin:0;line-height:1}
+h1 span{color:var(--signal)}
+.tagline{font-family:var(--mono);font-size:11px;color:var(--muted);
+  letter-spacing:.12em;text-transform:uppercase;margin-top:8px}
+
+/* turn bar */
+.turnbar{position:sticky;top:0;z-index:40;background:#1d242c;
+  border-bottom:1px solid var(--etch);box-shadow:0 6px 18px rgba(0,0,0,.35)}
+.turnbar-inner{max-width:1080px;margin:0 auto;padding:8px 16px}
+.tb-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.turncount{font-family:var(--display);font-size:12.5px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--muted);white-space:nowrap}
+.turncount b{color:var(--signal);font-size:17px}
+.phases{display:flex;gap:3px;flex:1;min-width:210px}
+.phase{flex:1;text-align:center;padding:5px 2px;border:1px solid var(--etch);background:#222932;
+  font-family:var(--mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--muted);cursor:pointer;border-radius:2px}
+.phase.on{background:var(--signal);color:#181d23;border-color:var(--signal);font-weight:600}
+.prompt{font-family:var(--mono);font-size:11.5px;color:var(--coolant);
+  padding:6px 0 1px;line-height:1.4}
+.prompt b{color:var(--signal)}
+
+/* nav */
+nav.tabs{display:flex;gap:2px;overflow-x:auto;border-bottom:1px solid var(--etch);
+  max-width:1080px;margin:0 auto;padding:0 10px}
+nav.tabs button{background:none;border:0;border-bottom:3px solid transparent;color:var(--muted);
+  font-family:var(--display);font-size:13.5px;font-weight:600;letter-spacing:.09em;
+  text-transform:uppercase;padding:13px 12px;cursor:pointer;white-space:nowrap}
+nav.tabs button:hover{color:var(--readout)}
+nav.tabs button[aria-selected=true]{color:var(--signal);border-bottom-color:var(--signal)}
+
+section.tab{display:none;padding-top:26px}
+section.tab.on{display:block;animation:fade .22s ease}
+@keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+h2{font-family:var(--display);font-size:clamp(19px,3.4vw,25px);font-weight:700;
+  letter-spacing:.05em;text-transform:uppercase;margin:0 0 4px}
+.sub{color:var(--muted);font-size:13.5px;margin:0 0 22px;max-width:62ch}
+h3{font-family:var(--display);font-size:16px;letter-spacing:.06em;text-transform:uppercase;
+  margin:26px 0 8px;color:var(--signal)}
+p{margin:0 0 12px;max-width:70ch}
+ul,ol{margin:0 0 14px;padding-left:20px;max-width:70ch}
+li{margin-bottom:6px}
+strong{color:#fff;font-weight:600}
+code{font-family:var(--mono);font-size:.92em;background:#2b333d;padding:1px 5px;
+  border-radius:2px;color:var(--coolant)}
+
+.panel{border:1px solid var(--etch);background:var(--plate);margin-bottom:16px}
+.panel > .head{background:var(--plate-hi);border-bottom:1px solid var(--etch);padding:9px 14px;
+  font-family:var(--display);font-size:13px;letter-spacing:.1em;text-transform:uppercase;
+  display:flex;justify-content:space-between;align-items:center;gap:10px}
+.panel > .body{padding:14px}
+.panel .head .tag{font-family:var(--mono);font-size:10.5px;color:var(--muted);letter-spacing:.06em}
+
+.note{border-left:3px solid var(--coolant);background:#212a33;padding:11px 14px;margin:0 0 16px;font-size:14px}
+.note.warn{border-left-color:var(--signal)}
+.note b{color:var(--signal)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:720px){.grid2{grid-template-columns:1fr}}
+
+table{width:100%;border-collapse:collapse;font-size:14px;margin-bottom:16px}
+th,td{text-align:left;padding:7px 10px;border-bottom:1px solid var(--etch)}
+th{font-family:var(--display);font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--muted);font-weight:600}
+td.num{font-family:var(--mono);color:var(--signal);white-space:nowrap}
+tr:last-child td{border-bottom:0}
+
+button.btn{font-family:var(--display);letter-spacing:.08em;text-transform:uppercase;font-size:12.5px;
+  font-weight:600;background:var(--signal);color:#181d23;border:0;padding:9px 15px;cursor:pointer;border-radius:2px}
+button.btn:hover{filter:brightness(1.1)}
+button.btn.ghost{background:transparent;color:var(--readout);border:1px solid var(--etch)}
+button.btn.ghost:hover{border-color:var(--signal);color:var(--signal);filter:none}
+button.btn.sm{padding:5px 10px;font-size:11px}
+textarea{background:#1a2027;border:1px solid var(--etch);color:var(--readout);
+  font-family:var(--mono);font-size:12px;padding:8px;border-radius:2px;width:100%;resize:vertical}
+textarea:focus{outline:2px solid var(--coolant);outline-offset:1px}
+input[type=text],input[type=number],select{background:#1a2027;border:1px solid var(--etch);
+  color:var(--readout);font-family:var(--mono);font-size:13px;padding:6px 8px;border-radius:2px;width:100%}
+select{font-family:var(--body)}
+input:focus,select:focus,button:focus-visible{outline:2px solid var(--coolant);outline-offset:1px}
+label.fld,span.fld{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--muted);margin-bottom:3px}
+
+/* checklist */
+.check{display:flex;gap:11px;align-items:flex-start;padding:11px 0;border-bottom:1px solid var(--etch)}
+.check:last-child{border-bottom:0}
+.check input{margin-top:3px;width:17px;height:17px;accent-color:var(--signal);flex:none;cursor:pointer}
+.check .t{font-weight:600;color:#fff;cursor:pointer}
+.check.done .t{text-decoration:line-through;color:var(--muted)}
+.check .d{font-size:13.5px;color:var(--muted)}
+.check a{color:var(--coolant)}
+
+/* SATOR */
+.pickers{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
+@media(max-width:600px){.pickers{grid-template-columns:1fr}}
+.sator{border:1px solid var(--etch);background:var(--plate);display:grid;grid-template-columns:42px 1fr 72px}
+.sator .letter{background:#1a2027;border-bottom:1px solid var(--etch);border-right:1px solid var(--etch);
+  font-family:var(--display);font-size:25px;font-weight:700;color:var(--signal);
+  display:flex;align-items:center;justify-content:center}
+.sator .ctl{border-bottom:1px solid var(--etch);padding:10px 12px}
+.sator .ctl .lbl{font-family:var(--mono);font-size:10px;letter-spacing:.11em;text-transform:uppercase;
+  color:var(--muted);margin-bottom:6px}
+.sator .run{border-bottom:1px solid var(--etch);border-left:1px solid var(--etch);background:#1a2027;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:var(--mono)}
+.sator .run .delta{font-size:11px;color:var(--coolant)}
+.sator .run .tot{font-size:20px;font-weight:600}
+.opts{display:flex;flex-wrap:wrap;gap:5px}
+.opt{font-family:var(--mono);font-size:11.5px;padding:5px 9px;border:1px solid var(--etch);
+  background:#1a2027;color:var(--muted);cursor:pointer;border-radius:2px}
+.opt[aria-pressed=true]{background:var(--coolant);color:#141a1f;border-color:var(--coolant);font-weight:600}
+.opt.warm[aria-pressed=true]{background:var(--signal);border-color:var(--signal)}
+.steppers{display:flex;gap:16px;flex-wrap:wrap;margin-top:10px}
+.stepper{display:flex;align-items:center;gap:6px}
+.stepper .sv{font-family:var(--mono);font-size:14px;min-width:16px;text-align:center;color:var(--signal)}
+.stepper button{width:24px;height:24px;border:1px solid var(--etch);background:#1a2027;
+  color:var(--readout);cursor:pointer;border-radius:2px;font-size:14px;line-height:1;padding:0}
+.stepper button:hover{border-color:var(--signal)}
+.stepper .sl{font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.inline{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:10px}
+.inline input{width:74px}
+
+.tn{border:1px solid var(--signal);background:#1a2027;padding:16px;margin-top:16px;
+  display:flex;align-items:center;gap:20px;flex-wrap:wrap}
+.tn .big{font-family:var(--display);font-size:54px;font-weight:700;line-height:.9;color:var(--signal)}
+.tn .big.miss{color:var(--damage);font-size:28px}
+.tn .meta{flex:1;min-width:180px}
+.cap{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.bar{height:9px;background:#2b333d;margin-top:8px;border-radius:1px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--coolant);transition:width .3s ease}
+.rollout{font-family:var(--mono);font-size:14px;min-height:22px;margin-top:10px}
+.rollout .hit{color:var(--coolant);font-weight:600}
+.rollout .no{color:var(--damage);font-weight:600}
+.dmgbox{border:1px solid var(--etch);background:var(--plate);padding:14px;margin-top:14px}
+.dmgtot{font-family:var(--display);font-size:30px;color:var(--damage);font-weight:700;line-height:1}
+
+/* tracker */
+.unit{border:1px solid var(--etch);background:var(--plate);margin-bottom:12px}
+.unit .uhead{display:flex;gap:8px;align-items:center;padding:9px 12px;background:var(--plate-hi);
+  border-bottom:1px solid var(--etch);flex-wrap:wrap}
+.unit .uhead input.nm{flex:1;min-width:120px;font-family:var(--display);font-size:15px;
+  letter-spacing:.05em;text-transform:uppercase;background:transparent;
+  border:0;border-bottom:1px dashed var(--etch);padding:2px 0}
+.unit .uhead input.nm:hover{border-bottom-color:var(--signal)}
+.unit .side{font-family:var(--mono);font-size:10px;letter-spacing:.1em;padding:3px 8px;
+  border:1px solid var(--etch);color:var(--muted);cursor:pointer;border-radius:2px}
+.unit .side.a{background:var(--coolant);color:#141a1f;border-color:var(--coolant)}
+.unit .side.b{background:var(--signal);color:#181d23;border-color:var(--signal)}
+.unit .ubody{padding:12px}
+.stats{display:grid;grid-template-columns:repeat(8,1fr);gap:6px;margin-bottom:12px}
+@media(max-width:640px){.stats{grid-template-columns:repeat(4,1fr)}}
+.pips{display:flex;flex-wrap:wrap;gap:4px;align-items:center;margin:4px 0 8px}
+.pips .plabel{font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:var(--muted);width:66px;flex:none}
+.pip{width:15px;height:15px;border-radius:50%;border:1.5px solid var(--muted);background:transparent;
+  cursor:pointer;padding:0}
+.pip.armor.hit{background:var(--muted)}
+.pip.struct{border-color:var(--struct)}
+.pip.struct.hit{background:var(--struct)}
+.hint{font-family:var(--mono);font-size:10.5px;color:var(--muted)}
+.applyrow{display:flex;gap:6px;align-items:flex-end;flex-wrap:wrap;margin-bottom:10px}
+.applyrow > div{width:78px}
+.heatrow{display:flex;gap:5px;align-items:center;margin:10px 0 8px;flex-wrap:wrap}
+.hbtn{font-family:var(--mono);font-size:11.5px;width:28px;height:26px;border:1px solid var(--etch);
+  background:#1a2027;color:var(--muted);cursor:pointer;border-radius:2px;padding:0}
+.hbtn.on{background:var(--damage);border-color:var(--damage);color:#fff;font-weight:600}
+.crits{display:flex;gap:6px;flex-wrap:wrap}
+.crit{font-family:var(--mono);font-size:11px;padding:4px 8px;border:1px solid var(--etch);
+  background:#1a2027;color:var(--muted);cursor:pointer;border-radius:2px}
+.crit.on{background:var(--damage);border-color:var(--damage);color:#fff}
+.quickgrid input{padding:5px 6px;font-size:12px;width:100%;min-width:46px}
+.quickgrid th{font-size:10px;padding:4px 5px}
+.quickgrid td{padding:4px 5px;border-bottom:1px solid var(--etch)}
+.quickgrid td.nmcell{font-family:var(--display);font-size:12.5px;letter-spacing:.04em;
+  text-transform:uppercase;white-space:nowrap;color:var(--readout)}
+.mprompt{border:1px solid var(--signal);background:#1a2027;padding:14px 16px;
+  font-family:var(--display);font-size:clamp(15px,2.6vw,19px);letter-spacing:.03em;line-height:1.35;
+  margin-bottom:12px}
+.mprompt b{color:var(--signal)}
+.mprompt .small{display:block;font-family:var(--body);font-size:13px;letter-spacing:0;
+  color:var(--muted);margin-top:6px;text-transform:none}
+.mrow{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;align-items:center}
+.mbtn{font-family:var(--display);font-size:13px;letter-spacing:.05em;text-transform:uppercase;
+  padding:10px 14px;border:1px solid var(--etch);background:var(--plate-hi);color:var(--readout);
+  cursor:pointer;border-radius:2px}
+.mbtn:hover{border-color:var(--signal);color:var(--signal)}
+.mbtn.go{background:var(--signal);color:#181d23;border-color:var(--signal);font-weight:600}
+.mbtn.go:hover{color:#181d23;filter:brightness(1.1)}
+.mbtn[aria-pressed=true]{background:var(--coolant);color:#141a1f;border-color:var(--coolant)}
+.mbtn small{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.04em;
+  text-transform:none;color:var(--muted);margin-top:2px}
+.mbtn:hover small{color:inherit}
+.mtn{font-family:var(--display);font-size:34px;color:var(--signal);font-weight:700;
+  line-height:1;margin-right:12px}
+.mstatus{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin:14px 0 0}
+.mcard{border:1px solid var(--etch);background:#1a2027;padding:9px 11px;font-family:var(--mono);font-size:11px}
+.mcard .mn{font-family:var(--display);font-size:13px;letter-spacing:.04em;text-transform:uppercase;
+  color:var(--readout);margin-bottom:3px}
+.mcard.sa{border-left:3px solid var(--coolant)}
+.mcard.sb{border-left:3px solid var(--signal)}
+.mcard.out{opacity:.4}
+.mcard .st{color:var(--muted)}
+.mcard .st b{color:var(--damage)}
+.mlog{margin-top:14px;font-family:var(--mono);font-size:12px;color:var(--muted);
+  border-top:1px solid var(--etch);padding-top:10px;max-height:190px;overflow-y:auto}
+.mlog div{padding:2px 0}
+.mlog .hi{color:var(--coolant)}
+.mlog .lo{color:var(--damage)}
+.mlog .tt{color:var(--signal);letter-spacing:.08em}
+.rdy{font-family:var(--mono);font-size:12px;padding:3px 0}
+.rdy .ok{color:var(--coolant)}
+.rdy .no{color:var(--damage)}
+.pvbar{display:flex;gap:14px;align-items:center;flex-wrap:wrap;border:1px solid var(--etch);
+  background:var(--plate);padding:11px 14px;margin-bottom:14px;font-family:var(--mono);font-size:12px}
+.pvside{letter-spacing:.06em;text-transform:uppercase;font-size:10.5px;color:var(--muted)}
+.pvside b{font-size:17px;font-family:var(--display)}
+.pvside.a b{color:var(--coolant)}
+.pvside.b b{color:var(--signal)}
+.pvverdict{flex:1;min-width:170px;color:var(--readout);text-align:right}
+.unit .uhead .btn.sm.ghost{font-size:10px;letter-spacing:.05em}
+.dead{opacity:.45}
+.flag{font-family:var(--mono);font-size:11.5px;color:var(--damage);margin-top:8px;min-height:16px}
+
+.dicebox{font-family:var(--mono);font-size:15px;padding:12px;border:1px solid var(--etch);
+  background:#1a2027;margin-top:10px}
+.dicebox b{color:var(--signal);font-size:19px}
+
+footer{max-width:1080px;margin:0 auto;padding:18px 16px 40px;border-top:1px solid var(--etch);
+  font-size:12.5px;color:var(--muted)}
+footer a{color:var(--coolant)}
+
+@media print{
+  .turnbar,nav.tabs,.btn,.stepper,.tn,.dmgbox,.sator,.pickers{display:none!important}
+  .crit,.hbtn,.side{border-color:#999;color:#000}
+  section.tab{display:block!important;page-break-inside:avoid}
+  body{background:#fff;color:#000}
+  .panel,table,td,th{border-color:#bbb}
+  h2,h3,td.num{color:#000}
+}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="top-inner">
+    <h1>Alpha <span>Strike</span> — Ridge Line</h1>
+    <div class="tagline">Simple 2v2 walkthrough · 40th Anniversary box · Quick-Start rules</div>
+  </div>
+</header>
+
+<div class="turnbar">
+  <div class="turnbar-inner">
+    <div class="tb-row">
+      <div class="turncount">Turn <b id="turnNum">1</b></div>
+      <div class="phases" id="phases">
+        <button class="phase on" data-ph="0">1 Initiative</button>
+        <button class="phase" data-ph="1">2 Movement</button>
+        <button class="phase" data-ph="2">3 Combat</button>
+        <button class="phase" data-ph="3">4 End</button>
+      </div>
+      <button class="btn sm" id="nextPhase">Next</button>
+      <button class="btn sm ghost" id="rollInit">Initiative</button>
+    </div>
+    <div class="prompt" id="prompt"></div>
+  </div>
+</div>
+
+<nav class="tabs" id="tabs" role="tablist">
+  <button role="tab" aria-selected="true" data-t="mission">Mission</button>
+  <button role="tab" aria-selected="false" data-t="setup">Set up</button>
+  <button role="tab" aria-selected="false" data-t="turn">The turn</button>
+  <button role="tab" aria-selected="false" data-t="move">Move</button>
+  <button role="tab" aria-selected="false" data-t="shoot">Shoot</button>
+  <button role="tab" aria-selected="false" data-t="damage">Damage &amp; heat</button>
+  <button role="tab" aria-selected="false" data-t="games">First games</button>
+  <button role="tab" aria-selected="false" data-t="track">Roster</button>
+  <button role="tab" aria-selected="false" data-t="ref">Tables</button>
+</nav>
+
+<div class="wrap">
+
+<!-- MISSION -->
+<section class="tab on" id="tab-mission">
+  <h2>Mission: Ridge Line</h2>
+  <p class="sub">Two 'Mechs a side. Load the forces, set the table, then let Step 3 walk you through every phase — initiative, move, shoot, end.</p>
+
+  <div class="panel">
+    <div class="head">Step 1 — the four 'Mechs <span class="tag" id="readyTag">not ready</span></div>
+    <div class="body">
+      <table style="margin-bottom:12px">
+        <tr><th>Lance A</th><th>Lance B</th></tr>
+        <tr><td>Shadow Hawk SHD-2H</td><td>Wolverine WVR-6M</td></tr>
+        <tr><td>Commando COM-2D</td><td>Locust LCT-1V</td></tr>
+      </table>
+      <div class="mrow">
+        <button class="btn sm" id="loadMission">Load Ridge Line forces</button>
+        <span class="hint" id="sidesOut"></span>
+      </div>
+
+      <div id="readyList" style="margin:12px 0"></div>
+
+      <div class="note" style="margin-bottom:12px">
+        <b>Stats are built in</b> from the Master Unit List for these four variants. Press the button once, then go to Step 3. Edit below only if your printed cards disagree.
+      </div>
+
+      <div style="overflow-x:auto"><table class="quickgrid" id="quickGrid"></table></div>
+
+      <details style="margin-top:14px">
+        <summary style="cursor:pointer;font-family:var(--mono);font-size:12px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase">Optional — refresh from MUL</summary>
+        <div style="margin-top:10px">
+          <div class="mrow">
+            <button class="btn sm ghost" id="autoFetch">Fetch all four from the MUL</button>
+            <span class="hint" id="fetchOut"></span>
+          </div>
+          <div class="mrow" id="mulLinks" style="margin-top:8px"></div>
+          <textarea id="mImportBox" rows="3" placeholder="Or paste a MUL QuickList JSON response here"></textarea>
+          <div class="mrow" style="margin-top:8px">
+            <button class="btn sm ghost" id="mImportBtn">Import paste</button>
+            <span class="hint" id="mImportOut"></span>
+          </div>
+        </div>
+      </details>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="head">Step 2 — the table <span class="tag">5 minutes</span></div>
+    <div class="body">
+      <ul style="margin-bottom:0">
+        <li>Both mapsheets side by side, grassland up. Roughly 36" × 22".</li>
+        <li>Play in inches with the tape. The hexes are decoration today.</li>
+        <li>Woods are the only terrain that counts: +1" to move through, +1 to hit anything in or behind them.</li>
+        <li>Ignore elevation, water and buildings entirely.</li>
+        <li>Deploy within 6" of your own short edge, initiative loser placing first, alternating.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="head">Step 3 — play <span class="tag" id="mTurnTag">Turn 1 · Initiative</span></div>
+    <div class="body">
+      <div class="mprompt" id="mPrompt">Finish Step 1 first.</div>
+      <div id="mControls"></div>
+      <div class="mstatus" id="mStatus"></div>
+      <div class="mlog" id="mLog"></div>
+      <div style="margin-top:12px">
+        <button class="btn sm ghost" id="mRestart">Restart the mission</button>
+      </div>
+    </div>
+  </div>
+
+  <h3>Winning</h3>
+  <p>Destroy both enemy 'Mechs. If you're both still standing after turn 6, whoever has more structure bubbles left takes it. Overheating, physical attacks and forced withdrawal are switched off — you can turn them on next game.</p>
+</section>
+
+<!-- SET UP -->
+<section class="tab" id="tab-setup">
+  <h2>Get the table ready</h2>
+  <p class="sub">Your box has the miniatures, maps, terrain and dice. Alpha Strike needs two more things and both are free downloads. Work down this list once, then go to First games.</p>
+
+  <div class="panel">
+    <div class="head">Before your first game <span class="tag" id="checkCount">0 / 6</span></div>
+    <div class="body" id="checklist"></div>
+  </div>
+
+  <h3>What's on the eight cards</h3>
+  <p>The box ships with eight double-sided, dry-erase <strong>Alpha Strike cards</strong> — one printed side per miniature, plus an alternate variant on the back of each. That's the piece I'd have sent you to the Master Unit List for; you already own it. Use the MUL only if you want variants the box doesn't cover.</p>
+  <table>
+    <tr><th>Card front</th><th>Card back</th><th>Size</th></tr>
+    <tr><td>Locust LCT-1V</td><td>Locust LCT-1E</td><td class="num">1</td></tr>
+    <tr><td>Commando COM-2D</td><td>Commando COM-3A</td><td class="num">1</td></tr>
+    <tr><td>Shadow Hawk SHD-2H</td><td>Shadow Hawk, Durant Carlyle</td><td class="num">2</td></tr>
+    <tr><td>Wolverine WVR-6M</td><td>Wolverine WVR-6R</td><td class="num">2</td></tr>
+    <tr><td>Catapult CPLT-C1</td><td>Catapult CPLT-K2</td><td class="num">3</td></tr>
+    <tr><td>Thunderbolt TDR-5S</td><td>Thunderbolt TDR-5SE</td><td class="num">3</td></tr>
+    <tr><td>BattleMaster BLR-1G</td><td>Awesome AWS-8Q</td><td class="num">4</td></tr>
+    <tr><td>Griffin GRF-1S</td><td>Griffin GRF-1N</td><td class="num">2</td></tr>
+  </table>
+  <div class="note warn">
+    <b>Two things to know about that list.</b> The BattleMaster and the Awesome share a single card, front and back — so if you field both you'll be flipping it, and it's worth tracking one of them on the Roster tab instead. And there's a Griffin card with no Griffin miniature; it's there for the separate Starter Set.
+  </div>
+
+  <h3>Reading a unit card</h3>
+  <table>
+    <tr><th>Field</th><th>What it means</th></tr>
+    <tr><td class="num">MV</td><td>Inches it can move in a turn. A <code>j</code> after a second number is its jump distance.</td></tr>
+    <tr><td class="num">TMM</td><td>Target Movement Modifier — how much harder it is to hit while moving normally.</td></tr>
+    <tr><td class="num">SZ</td><td>Size, 1 to 4. Sets physical attack damage and some victory scoring.</td></tr>
+    <tr><td class="num">S / M / L</td><td>Damage delivered at short, medium and long range.</td></tr>
+    <tr><td class="num">OV</td><td>Overheat Value — extra damage it can push out by taking heat.</td></tr>
+    <tr><td class="num">A / S</td><td>Armor bubbles, then structure bubbles. Cross them off as damage lands.</td></tr>
+    <tr><td class="num">Skill</td><td>Blank on the card — write <strong>4</strong>. That's a regular MechWarrior and your base target number.</td></tr>
+  </table>
+
+  <h3>Table size, or use the box maps</h3>
+  <p>Alpha Strike is written for a <strong>3'×4' to 4'×4'</strong> open surface, each player deploying along an opposite long edge. You don't need a mat — the two 18"×22" paper maps side by side give roughly 36"×22", plenty for four 'Mechs a side.</p>
+  <div class="note warn">
+    <b>Playing on the printed hexes.</b> Treat <strong>1 hex = 2 inches</strong> and everything converts. A 'Mech with MV 12" walks 6 hexes. Short range becomes 3 hexes, medium reaches 12, long reaches 21. Use the map's own terrain instead of placing templates.
+  </div>
+</section>
+
+<!-- TURN -->
+<section class="tab" id="tab-turn">
+  <h2>The turn, start to finish</h2>
+  <p class="sub">Four phases, in this order, every turn, until one side meets the victory condition. The bar at the top tracks where you are and tells you who acts first.</p>
+
+  <div class="panel">
+    <div class="head">Phase 1 — Initiative <span class="tag">Both players roll</span></div>
+    <div class="body">
+      <p>Each player rolls 2D6. Highest total wins the turn. Re-roll ties.</p>
+      <p><strong>Winning initiative means acting last.</strong> Not a typo — everything in a turn happens simultaneously in fiction, so the player who read the battlefield better gets to react to what the enemy already committed to.</p>
+      <button class="btn sm" id="rollInit2">Roll initiative</button>
+      <div class="dicebox" id="initBox">Roll to see who acts first.</div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="head">Phase 2 — Movement <span class="tag">Alternating</span></div>
+    <div class="body">
+      <p>The initiative <strong>loser</strong> moves one 'Mech. Then the winner moves one. Alternate until every 'Mech has moved.</p>
+      <p>Moving commits a 'Mech to a movement mode for the turn — standstill, ground move, sprint or jump. That choice changes both how hard it is to hit and how well it shoots, so it's the real decision of the phase.</p>
+      <p>If one side has more 'Mechs left to move, it moves in proportion: with twice as many left, it moves two for every one of the opponent's.</p>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="head">Phase 3 — Combat <span class="tag">Not alternating</span></div>
+    <div class="body">
+      <p>The initiative <strong>loser</strong> declares and resolves attacks for <em>all</em> of their 'Mechs, one after another. Then the winner does the same.</p>
+      <div class="note"><b>Destroyed 'Mechs still shoot back.</b> Damage is written on the card immediately, but its effects don't take hold until the End Phase. A 'Mech wiped out during the loser's attacks still fires in the winner's attacks that same turn.</div>
+      <p>Each 'Mech gets one attack: a weapon attack or a physical attack, never both.</p>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="head">Phase 4 — End <span class="tag">Simultaneous</span></div>
+    <div class="body">
+      <ol>
+        <li>Apply damage effects and remove destroyed 'Mechs from the table.</li>
+        <li>Apply heat gained this turn, then cool down.</li>
+        <li>Check victory conditions.</li>
+      </ol>
+      <p>Then back to Phase 1.</p>
+    </div>
+  </div>
+</section>
+
+<!-- MOVE -->
+<section class="tab" id="tab-move">
+  <h2>Moving</h2>
+  <p class="sub">MV is inches, not a pool of points. Use a flexible tape so curved paths measure honestly.</p>
+
+  <h3>Pick a mode — this is the whole decision</h3>
+  <table>
+    <tr><th>Mode</th><th>Distance</th><th>Your shooting</th><th>Being shot at</th></tr>
+    <tr><td>Standstill</td><td class="num">under 1"</td><td class="num">−1 to hit</td><td class="num">TMM +0</td></tr>
+    <tr><td>Ground move</td><td class="num">up to MV</td><td class="num">+0</td><td class="num">TMM as printed</td></tr>
+    <tr><td>Sprint</td><td class="num">MV × 1.5, round up</td><td>cannot attack</td><td class="num">TMM as printed</td></tr>
+    <tr><td>Jump</td><td class="num">up to the "j" value</td><td class="num">+2 to hit</td><td class="num">TMM +1</td></tr>
+  </table>
+  <p>Standing still makes you accurate and easy to hit. Jumping makes you slippery and inaccurate. Sprinting is pure repositioning — no attack, and no grabbing objectives either.</p>
+
+  <h3>Terrain costs</h3>
+  <table>
+    <tr><th>Terrain</th><th>Cost per inch</th></tr>
+    <tr><td>Clear</td><td class="num">1"</td></tr>
+    <tr><td>Woods</td><td class="num">+1"</td></tr>
+    <tr><td>Rough / rubble</td><td class="num">+1"</td></tr>
+    <tr><td>Water, depth 1"</td><td class="num">+1"</td></tr>
+    <tr><td>Building</td><td class="num">+1" to +4" by type</td></tr>
+    <tr><td>Level change, up or down</td><td class="num">+2" per 1" of elevation</td></tr>
+  </table>
+  <ul>
+    <li>Never more than <strong>2" of elevation per 2" travelled</strong>. Anything steeper is impassable.</li>
+    <li><strong>Minimum move:</strong> a mobile 'Mech can always move 2" regardless of terrain cost.</li>
+    <li><strong>Jumping ignores terrain costs</strong> and takes the shortest path. It can jump into water but not out of it.</li>
+    <li>End facing any direction you like. Facing only matters for firing arcs and rear hits.</li>
+  </ul>
+  <div class="note"><b>Stacking.</b> You can move through friendly 'Mechs but not through enemies at the same level, and no two 'Mechs finish on the same spot. The whole base has to fit legally.</div>
+</section>
+
+<!-- SHOOT -->
+<section class="tab" id="tab-shoot">
+  <h2>Shooting</h2>
+  <p class="sub">Every attack is one 2D6 roll against a target number you build with the SATOR stack. Pick your two 'Mechs from the roster and the numbers fill themselves in.</p>
+
+  <h3>Three checks first</h3>
+  <ol>
+    <li><strong>Line of sight.</strong> Crouch to the firing mini's eye level. If less than a third of the target is visible behind solid terrain, LOS is blocked. Woods only block once the line passes through 6" or more of them.</li>
+    <li><strong>Firing arc.</strong> The front arc runs forward from the model's facing. If more than half the target's base is outside it, no shot.</li>
+    <li><strong>Range.</strong> Measure base edge to base edge, then enter it below.</li>
+  </ol>
+  <div class="note warn"><b>Nose to nose?</b> 'Mechs in base-to-base contact can't shoot each other at all. Punch instead.</div>
+
+  <h3>Build the target number</h3>
+
+  <div class="pickers">
+    <div>
+      <label class="fld" for="atkSel">Attacker</label>
+      <select id="atkSel"></select>
+    </div>
+    <div>
+      <label class="fld" for="tgtSel">Target</label>
+      <select id="tgtSel"></select>
+    </div>
+  </div>
+
+  <div class="sator">
+    <div class="letter">S</div>
+    <div class="ctl">
+      <div class="lbl">Skill of the attacker — the base target number</div>
+      <div class="opts" data-group="skill">
+        <button class="opt" data-v="2">2 · elite</button>
+        <button class="opt" data-v="3">3 · veteran</button>
+        <button class="opt" data-v="4" aria-pressed="true">4 · regular</button>
+        <button class="opt" data-v="5">5 · green</button>
+      </div>
+    </div>
+    <div class="run"><span class="delta">base</span><span class="tot" id="tS">4</span></div>
+
+    <div class="letter">A</div>
+    <div class="ctl">
+      <div class="lbl">How the attacker moved</div>
+      <div class="opts" data-group="atk">
+        <button class="opt" data-v="-1">standstill −1</button>
+        <button class="opt" data-v="0" aria-pressed="true">ground +0</button>
+        <button class="opt warm" data-v="2">jumped +2</button>
+        <button class="opt" data-v="sprint">sprinted</button>
+      </div>
+    </div>
+    <div class="run"><span class="delta" id="dA">+0</span><span class="tot" id="tA">4</span></div>
+
+    <div class="letter">T</div>
+    <div class="ctl">
+      <div class="lbl">How the target moved</div>
+      <div class="opts" data-group="tgt">
+        <button class="opt" data-v="-4">immobile −4</button>
+        <button class="opt" data-v="0">standstill +0</button>
+        <button class="opt" data-v="ground" aria-pressed="true">ground · TMM</button>
+        <button class="opt" data-v="jump">jumped · TMM+1</button>
+      </div>
+      <div class="inline">
+        <div><span class="fld">Target's TMM</span><input type="number" id="tmmIn" value="1" min="0" max="6"></div>
+      </div>
+    </div>
+    <div class="run"><span class="delta" id="dT">+1</span><span class="tot" id="tT">5</span></div>
+
+    <div class="letter">O</div>
+    <div class="ctl">
+      <div class="lbl">Other — terrain, cover, damage, heat</div>
+      <div class="opts" data-group="other">
+        <button class="opt" data-v="1">woods +1</button>
+        <button class="opt" data-v="1">partial cover +1</button>
+        <button class="opt" data-v="1">charge or DFA +1</button>
+        <button class="opt" data-v="stl">target has STL</button>
+      </div>
+      <div class="steppers">
+        <div class="stepper" data-st="fc">
+          <span class="sl">Fire control hits</span>
+          <button data-d="-1" aria-label="fewer fire control hits">−</button>
+          <span class="sv">0</span>
+          <button data-d="1" aria-label="more fire control hits">+</button>
+        </div>
+        <div class="stepper" data-st="heat">
+          <span class="sl">Attacker heat</span>
+          <button data-d="-1" aria-label="less heat">−</button>
+          <span class="sv">0</span>
+          <button data-d="1" aria-label="more heat">+</button>
+        </div>
+      </div>
+    </div>
+    <div class="run"><span class="delta" id="dO">+0</span><span class="tot" id="tO">5</span></div>
+
+    <div class="letter">R</div>
+    <div class="ctl">
+      <div class="lbl">Range — type what you measured</div>
+      <div class="inline">
+        <div><span class="fld">Inches</span><input type="number" id="distIn" min="0" max="60" step="0.5" placeholder="e.g. 14"></div>
+        <div class="opts" data-group="rng">
+          <button class="opt" data-v="0" aria-pressed="true">short +0</button>
+          <button class="opt" data-v="2">medium +2</button>
+          <button class="opt" data-v="4">long +4</button>
+        </div>
+      </div>
+    </div>
+    <div class="run"><span class="delta" id="dR">+0</span><span class="tot" id="tR">5</span></div>
+  </div>
+
+  <div class="tn">
+    <div class="big" id="tnBig">5</div>
+    <div class="meta">
+      <div class="cap">Roll this or higher on 2D6</div>
+      <div class="bar"><i id="tnBar" style="width:83%"></i></div>
+      <div class="cap" id="tnOdds" style="margin-top:6px">83% chance to hit</div>
+    </div>
+    <div>
+      <button class="btn" id="rollAtk">Roll 2D6</button>
+      <div class="rollout" id="atkOut"></div>
+    </div>
+  </div>
+  <p style="margin-top:12px">A target number above 12 misses automatically. A natural 12 is not an automatic hit, but if a 12 does hit, it earns a critical roll even through armor. Heat and fire control damage don't apply to physical attacks.</p>
+
+  <div class="dmgbox">
+    <div class="cap">If it hits</div>
+    <div class="inline">
+      <div><span class="fld">S dmg</span><input type="number" id="dS_" min="0" max="20" placeholder="—"></div>
+      <div><span class="fld">M dmg</span><input type="number" id="dM_" min="0" max="20" placeholder="—"></div>
+      <div><span class="fld">L dmg</span><input type="number" id="dL_" min="0" max="20" placeholder="—"></div>
+      <div class="opts" style="margin-left:4px">
+        <button class="opt warm" id="rearOpt" data-v="rear">rear hit +1</button>
+      </div>
+      <div class="stepper" data-st="ov" style="margin-left:4px">
+        <span class="sl">Overheat</span>
+        <button data-d="-1" aria-label="less overheat">−</button><span class="sv">0</span><button data-d="1" aria-label="more overheat">+</button>
+      </div>
+    </div>
+    <div class="inline" style="margin-top:14px">
+      <div><span class="cap">Damage delivered</span><div class="dmgtot" id="dmgTot">—</div></div>
+      <button class="btn" id="applyToTarget">Apply to target</button>
+      <span class="hint" id="dmgNote"></span>
+    </div>
+  </div>
+</section>
+
+<!-- DAMAGE -->
+<section class="tab" id="tab-damage">
+  <h2>Damage, criticals and heat</h2>
+  <p class="sub">Armor first, then structure. Any hit that bites into structure risks a critical.</p>
+
+  <h3>Applying a hit</h3>
+  <ol>
+    <li>Cross off one <strong>armor</strong> bubble per point of damage until armor runs out.</li>
+    <li>Spill the rest into <strong>structure</strong> bubbles.</li>
+    <li>If the attack marked any structure at all, the attacker rolls once on the critical table.</li>
+    <li>When the last structure bubble is gone the 'Mech is destroyed, removed in the End Phase.</li>
+  </ol>
+
+  <div class="panel">
+    <div class="head">Critical hits <span class="tag">2D6</span></div>
+    <div class="body">
+      <table>
+        <tr><th>Roll</th><th>Result</th><th>Effect</th></tr>
+        <tr><td class="num">2</td><td>Ammo hit</td><td>Destroyed, unless the card shows ENE, CASE or CASEII</td></tr>
+        <tr><td class="num">3</td><td>Engine hit</td><td>Gains 1 heat whenever it fires. A second engine hit destroys it.</td></tr>
+        <tr><td class="num">4</td><td>Fire control</td><td>+2 to its target numbers, cumulative</td></tr>
+        <tr><td class="num">5</td><td>No critical</td><td>—</td></tr>
+        <tr><td class="num">6</td><td>Weapon hit</td><td>All damage values drop by 1</td></tr>
+        <tr><td class="num">7</td><td>MP hit</td><td>Halve MV and TMM, rounding down</td></tr>
+        <tr><td class="num">8</td><td>Weapon hit</td><td>All damage values drop by 1</td></tr>
+        <tr><td class="num">9</td><td>No critical</td><td>—</td></tr>
+        <tr><td class="num">10</td><td>Fire control</td><td>+2 to its target numbers</td></tr>
+        <tr><td class="num">11</td><td>Engine hit</td><td>Gains 1 heat whenever it fires</td></tr>
+        <tr><td class="num">12</td><td>Destroyed</td><td>Remove it at the end of the turn</td></tr>
+      </table>
+      <button class="btn" id="rollCrit">Roll a critical</button>
+      <div class="dicebox" id="critOut">No roll yet.</div>
+    </div>
+  </div>
+
+  <h3>Heat</h3>
+  <p>If the card shows an <strong>OV</strong> above zero you can announce before rolling that you're pushing it. Add up to OV points of damage at short or medium range and take the same number as heat in the End Phase. Only cards with <strong>OVL</strong> get that bonus at long range.</p>
+  <table>
+    <tr><th>Heat level</th><th>What it costs next turn</th></tr>
+    <tr><td class="num">1</td><td>+1 to your target numbers, −2" MV</td></tr>
+    <tr><td class="num">2</td><td>+2 to target numbers, −4" MV, −1 TMM</td></tr>
+    <tr><td class="num">3</td><td>+3 to target numbers, −6" MV, −1 TMM</td></tr>
+    <tr><td class="num">4</td><td>Shutdown — no move, no attack, TMM drops to −4</td></tr>
+  </table>
+  <p>Heat clears completely in any End Phase where the 'Mech made no weapon attack. Standing in water sheds 1 extra point. Jumping ignores the MV and TMM penalties.</p>
+
+  <h3>Punching, kicking and worse</h3>
+  <ul>
+    <li><strong>Standard physical</strong> — within 1", target in your arc. Damage equals Size.</li>
+    <li><strong>Melee</strong> — only for cards showing MEL, reaches 2", damage is Size + 1.</li>
+    <li><strong>Charge</strong> — declared in the Movement Phase, end in base contact. Damage is Size plus half your TMM; you take half your TMM back, +1 more if the target is Size 3 or larger.</li>
+    <li><strong>Death From Above</strong> — jump onto them. Charge damage +1 and a free critical roll, but you take damage equal to your own Size.</li>
+  </ul>
+  <p>A physical attack replaces the weapon attack for that turn.</p>
+
+  <h3>When a 'Mech is finished</h3>
+  <p>Under Forced Withdrawal a <strong>crippled</strong> 'Mech must head for its own board edge and leave. Crippled means: no armor left and down to half its starting structure, or both medium and long damage values reduced to 0, or immobilised by a critical. Withdrawing 'Mechs can still shoot anything that comes into range.</p>
+</section>
+
+<!-- GAMES -->
+<section class="tab" id="tab-games">
+  <h2>Your first two games</h2>
+  <p class="sub">Written for the eight 'Mechs in your box. Game one teaches the turn in about forty minutes. Game two is the real thing.</p>
+
+  <div class="panel">
+    <div class="head">Game 1 — Ridge Line <span class="tag">2 v 2 · ~40 min</span></div>
+    <div class="body">
+      <p><strong>Forces.</strong> One player takes the Shadow Hawk and Commando, the other the Wolverine and Locust. Everyone Skill 4. Two of these jump and two don't, which is exactly the contrast to feel first.</p>
+      <p><strong>Table.</strong> Both paper maps side by side, or a 3'×3' surface. Four pieces of woods total, placed alternately, none within 4" of another. Nothing else.</p>
+      <p><strong>Deploy.</strong> Alternate placing one 'Mech at a time within 6" of your own long edge.</p>
+      <p><strong>Win.</strong> Destroy or cripple both enemy 'Mechs.</p>
+      <p><strong>Skip for now.</strong> Heat, overheating, physical attacks, buildings, battlefield support. Just move, shoot, mark damage.</p>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="head">Game 2 — Full Lances <span class="tag">4 v 4 · ~90 min</span></div>
+    <div class="body">
+      <p><strong>Forces.</strong> Awesome, Thunderbolt, Shadow Hawk and Commando against BattleMaster, Catapult, Wolverine and Locust — one 'Mech from each weight class per side. Check point values on the Master Unit List and swap a light 'Mech across if the totals come out lopsided.</p>
+      <p><strong>Table.</strong> Deploy along opposite long edges. Each player picks eight pieces of terrain from the punchboard. The initiative winner places one first, then alternate until all sixteen are down.</p>
+      <p><strong>Win.</strong> Either last force standing, or first to 10 victory points scoring each destroyed or crippled enemy 'Mech's Size value.</p>
+      <p><strong>Now turn on.</strong> Overheating, physical attacks and Forced Withdrawal.</p>
+      <p><strong>Card conflict.</strong> This split puts the Awesome and the BattleMaster on opposite sides, and they're two sides of one card. Track one of them on the Roster tab so nobody is passing a card back and forth all evening.</p>
+    </div>
+  </div>
+
+  <h3>What usually goes wrong on the first night</h3>
+  <ul>
+    <li><strong>Forgetting the initiative winner acts last.</strong> Feels backwards for one game, then feels like an advantage.</li>
+    <li><strong>Alternating attacks.</strong> Movement alternates one 'Mech at a time. Combat does not — the loser resolves everything, then the winner.</li>
+    <li><strong>Removing casualties too early.</strong> They stay on the table and keep firing until the End Phase.</li>
+    <li><strong>Measuring model to model.</strong> Range is base edge to base edge.</li>
+    <li><strong>Missing rear shots.</strong> Check the attack direction on every hit — that free point adds up.</li>
+    <li><strong>Forgetting the movement mode you chose.</strong> Drop a token or a die next to each 'Mech as it finishes moving.</li>
+  </ul>
+</section>
+
+<!-- ROSTER -->
+<section class="tab" id="tab-track">
+  <h2>Roster</h2>
+  <p class="sub">Prefilled with the eight Alpha Strike cards from the box and a suggested four-a-side split. Type each card's numbers in once; after that, mark damage here and the Shoot tab pulls from these 'Mechs automatically.</p>
+
+  <div class="note">
+    <b>How to use it.</b> Type damage into the box and press Apply — armor fills first, then structure, and you'll be told when a critical roll is owed. Or click individual bubbles. <b>Flip</b> swaps a card to the variant printed on its back. Everything stays on this device.
+  </div>
+
+  <div class="panel">
+    <div class="head">Import from the Master Unit List <span class="tag">optional</span></div>
+    <div class="body">
+      <p style="margin-bottom:10px">The MUL has a public data endpoint that returns plain text. Open this in a browser tab, one &#39;Mech at a time, swapping the model code at the end:</p>
+      <p><code id="mulUrl">https://masterunitlist.azurewebsites.net/Unit/QuickList?Name=AWS-8Q</code>
+      <button class="btn sm ghost" id="copyUrl">Copy</button></p>
+      <p style="margin-bottom:8px">Select all of what comes back, paste it below, and press Import. Repeat for each card — pastes accumulate, and a &#39;Mech already in the roster is updated in place rather than duplicated.</p>
+      <textarea id="importBox" rows="4" placeholder='Paste the MUL response here, e.g. {"Units":[{"Name":"Awesome AWS-8Q", ...}]}'></textarea>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:8px">
+        <button class="btn sm" id="importBtn">Import</button>
+        <span class="hint" id="importOut"></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="pvbar" id="pvBar"></div>
+
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px">
+    <button class="btn sm" id="addUnit">Add a 'Mech</button>
+    <button class="btn sm ghost" id="healAll">Repair all</button>
+    <button class="btn sm ghost" id="resetUnits">Reset to box roster</button>
+  </div>
+
+  <div id="unitList"></div>
+</section>
+
+<!-- TABLES -->
+<section class="tab" id="tab-ref">
+  <h2>Quick reference</h2>
+  <p class="sub">Everything you look up mid-turn, on one screen. This tab prints cleanly if you want it beside the table.</p>
+
+  <div class="grid2">
+    <div>
+      <div class="panel"><div class="head">Range</div><div class="body">
+        <table>
+          <tr><th>Distance</th><th>Bracket</th><th>Modifier</th></tr>
+          <tr><td class="num">up to 6"</td><td>Short</td><td class="num">+0</td></tr>
+          <tr><td class="num">over 6" to 24"</td><td>Medium</td><td class="num">+2</td></tr>
+          <tr><td class="num">over 24" to 42"</td><td>Long</td><td class="num">+4</td></tr>
+          <tr><td class="num">beyond 42"</td><td>—</td><td class="num">no shot</td></tr>
+        </table></div></div>
+
+      <div class="panel"><div class="head">Attacker movement</div><div class="body">
+        <table>
+          <tr><td>Standstill</td><td class="num">−1</td></tr>
+          <tr><td>Ground move</td><td class="num">+0</td></tr>
+          <tr><td>Jumping</td><td class="num">+2</td></tr>
+          <tr><td>Sprinting</td><td class="num">no attack</td></tr>
+        </table></div></div>
+
+      <div class="panel"><div class="head">Other modifiers</div><div class="body">
+        <table>
+          <tr><td>Woods intervening or occupied</td><td class="num">+1</td></tr>
+          <tr><td>Partial cover, including water</td><td class="num">+1</td></tr>
+          <tr><td>Each fire control hit</td><td class="num">+2</td></tr>
+          <tr><td>Attacker's heat level</td><td class="num">+heat</td></tr>
+          <tr><td>Charge or Death From Above</td><td class="num">+1</td></tr>
+          <tr><td>Target has STL, medium / long</td><td class="num">+1 / +2</td></tr>
+        </table></div></div>
+    </div>
+
+    <div>
+      <div class="panel"><div class="head">Target movement</div><div class="body">
+        <table>
+          <tr><td>Ground move or sprint</td><td class="num">+TMM</td></tr>
+          <tr><td>Standstill</td><td class="num">+0</td></tr>
+          <tr><td>Jumping</td><td class="num">+TMM +1</td></tr>
+          <tr><td>Immobile or shut down</td><td class="num">−4</td></tr>
+        </table></div></div>
+
+      <div class="panel"><div class="head">Movement cost per inch</div><div class="body">
+        <table>
+          <tr><td>Clear</td><td class="num">1"</td></tr>
+          <tr><td>Woods, rough, rubble, water</td><td class="num">+1"</td></tr>
+          <tr><td>Building</td><td class="num">+1" to 4"</td></tr>
+          <tr><td>Level change per 1"</td><td class="num">+2"</td></tr>
+          <tr><td>Minimum move, always available</td><td class="num">2"</td></tr>
+        </table></div></div>
+
+      <div class="panel"><div class="head">2D6 odds</div><div class="body">
+        <table id="oddsTable"><tr><th>Target number</th><th>Chance to hit</th></tr></table>
+      </div></div>
+    </div>
+  </div>
+
+  <div class="panel"><div class="head">Card abbreviations you'll meet in this box</div><div class="body">
+    <table>
+      <tr><td class="num">ENE</td><td>Energy weapons — immune to ammo explosion criticals</td></tr>
+      <tr><td class="num">CASE / CASEII</td><td>Survives an ammo hit, with 1 extra damage or none at all</td></tr>
+      <tr><td class="num">HT#/#/#</td><td>Adds that much heat to the target on a hit at that range</td></tr>
+      <tr><td class="num">MEL</td><td>Carries a melee weapon — physical reach 2", damage Size +1</td></tr>
+      <tr><td class="num">OVL</td><td>Overheating also boosts long range damage</td></tr>
+      <tr><td class="num">REAR#/#/#</td><td>Can fire behind itself at +1, trading away front damage</td></tr>
+      <tr><td class="num">STL</td><td>Stealth — harder to hit at medium and long range</td></tr>
+      <tr><td class="num">AMS</td><td>Shaves 1 damage off incoming missile attacks from the front</td></tr>
+    </table>
+  </div></div>
+</section>
+
+</div>
+
+<footer>
+  Rules summarised from the free Alpha Strike Quick-Start Rulebook published by Catalyst Game Labs at
+  <a href="https://battletech.com/downloads/" target="_blank" rel="noopener">battletech.com/downloads</a>,
+  with unit cards from <a href="https://masterunitlist.info/" target="_blank" rel="noopener">masterunitlist.info</a>.
+  BattleTech and Alpha Strike are trademarks of The Topps Company, Inc. Unofficial player aid.
+</footer>
+
+<script>
+"use strict";
+
+/* ---------- helpers ---------- */
+const $ = s => document.querySelector(s);
+const d6 = () => 1 + Math.floor(Math.random()*6);
+const roll2 = () => { const a=d6(), b=d6(); return {a,b,total:a+b}; };
+const WAYS = {2:36,3:35,4:33,5:30,6:26,7:21,8:15,9:10,10:6,11:3,12:1};
+const oddsFor = tn => tn<=2 ? 100 : (tn>12 ? 0 : Math.round(WAYS[tn]/36*100));
+const sign = n => (n>0?'+':'') + n;
+const num = (v,d) => { const n = parseInt(v,10); return isNaN(n) ? d : n; };
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+/* MUL QuickList often returns BFTMM:0 — derive TMM from ground Move inches */
+function tmmFromMv(mv){
+  const m = String(mv || '').match(/(\d+)/);
+  if(!m) return 0;
+  const inches = parseInt(m[1], 10);
+  if(inches <= 4) return 0;
+  if(inches <= 8) return 1;
+  if(inches <= 12) return 2;
+  if(inches <= 18) return 3;
+  if(inches <= 34) return 4;
+  return 5;
+}
+
+const store = {
+  get(k){
+    try {
+      if(window.storage && typeof window.storage.get === 'function'){
+        return window.storage.get(k).then(r => r ? JSON.parse(r.value) : null).catch(() => null);
+      }
+      const raw = localStorage.getItem(k);
+      return Promise.resolve(raw ? JSON.parse(raw) : null);
+    } catch(e){ return Promise.resolve(null); }
+  },
+  set(k,v){
+    try {
+      const s = JSON.stringify(v);
+      if(window.storage && typeof window.storage.set === 'function'){
+        return window.storage.set(k, s).catch(()=>{});
+      }
+      localStorage.setItem(k, s);
+    } catch(e){}
+    return Promise.resolve();
+  }
+};
+
+/* ---------- tabs ---------- */
+const tabBtns = [...document.querySelectorAll('#tabs button')];
+function showTab(btn){
+  tabBtns.forEach(b => b.setAttribute('aria-selected', String(b === btn)));
+  document.querySelectorAll('section.tab').forEach(s =>
+    s.classList.toggle('on', s.id === 'tab-' + btn.dataset.t));
+  btn.scrollIntoView({block:'nearest', inline:'nearest'});
+  window.scrollTo(0,0);
+}
+$('#tabs').addEventListener('click', e => {
+  const b = e.target.closest('button'); if(b) showTab(b);
+});
+$('#tabs').addEventListener('keydown', e => {
+  if(e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+  const i = tabBtns.indexOf(document.activeElement); if(i < 0) return;
+  const next = tabBtns[(i + (e.key === 'ArrowRight' ? 1 : tabBtns.length - 1)) % tabBtns.length];
+  next.focus(); showTab(next); e.preventDefault();
+});
+
+/* ---------- turn bar ---------- */
+let turn = 1, phase = 0, init = null;
+const PROMPTS = [
+  'Both players roll 2D6. Highest wins — and the winner acts <b>last</b>.',
+  'Initiative loser moves one \u2019Mech, then alternate until all have moved.',
+  'Initiative loser resolves attacks for <b>all</b> their \u2019Mechs, then the winner.',
+  'Apply damage effects, remove destroyed \u2019Mechs, adjust heat, check victory.'
+];
+function paintTurn(){
+  document.querySelectorAll('.phase').forEach((el,i)=>el.classList.toggle('on', i===phase));
+  $('#turnNum').textContent = turn;
+  let txt = PROMPTS[phase];
+  if(init && phase > 0 && phase < 3) txt = txt.replace('Initiative loser', '<b>' + init.loser + '</b>');
+  $('#prompt').innerHTML = txt;
+}
+$('#phases').addEventListener('click', e => {
+  const b = e.target.closest('.phase'); if(!b) return;
+  phase = Number(b.dataset.ph); paintTurn();
+});
+$('#nextPhase').addEventListener('click', () => {
+  phase++; if(phase > 3){ phase = 0; turn++; init = null; } paintTurn();
+});
+function doInitiative(){
+  let p1, p2;
+  do { p1 = roll2(); p2 = roll2(); } while (p1.total === p2.total);
+  const p1wins = p1.total > p2.total;
+  init = { winner: p1wins ? 'Player 1' : 'Player 2', loser: p1wins ? 'Player 2' : 'Player 1' };
+  $('#initBox').innerHTML =
+    'Player 1 rolled ' + p1.a + '+' + p1.b + ' = <b>' + p1.total + '</b> &nbsp;·&nbsp; ' +
+    'Player 2 rolled ' + p2.a + '+' + p2.b + ' = <b>' + p2.total + '</b><br>' +
+    init.winner + ' wins initiative, so ' + init.loser + ' moves and shoots first.';
+  if(phase === 0){ phase = 1; }
+  paintTurn();
+}
+$('#rollInit').addEventListener('click', doInitiative);
+$('#rollInit2').addEventListener('click', doInitiative);
+paintTurn();
+
+/* ---------- checklist ---------- */
+const CHECKS = [
+  {t:"Download the Alpha Strike Quick-Start Rulebook",
+   d:'Free PDF at <a href="https://battletech.com/downloads/" target="_blank" rel="noopener">battletech.com/downloads</a>. It is the full teaching book, not a pamphlet.'},
+  {t:"Dig the eight Alpha Strike cards out of the box",
+   d:"They're already in there \u2014 double-sided, laminated for dry-erase, one per miniature. You do not need to print anything."},
+  {t:"Write \u201c4\u201d in the Skill box on every card",
+   d:"Regular MechWarrior. That number is the base target number for all its attacks."},
+  {t:"Copy the eight cards into the Roster tab",
+   d:"Two minutes once, and the Shoot tab then does the target numbers and damage for you."},
+  {t:"Find a tape measure marked in inches",
+   d:"A flexible sewing tape beats a ruler — it measures curved movement paths honestly."},
+  {t:"Round up four to six six-sided dice",
+   d:"The box gives you two. You'll want more for initiative, attacks and criticals."}
+];
+const clEl = $('#checklist');
+CHECKS.forEach((c,i)=>{
+  const row = document.createElement('div');
+  row.className = 'check';
+  row.innerHTML =
+    '<input type="checkbox" id="chk'+i+'">' +
+    '<span><label class="t" for="chk'+i+'">'+c.t+'</label><br><span class="d">'+c.d+'</span></span>';
+  clEl.appendChild(row);
+});
+function paintChecks(){
+  const boxes = [...clEl.querySelectorAll('input')];
+  boxes.forEach(b => b.closest('.check').classList.toggle('done', b.checked));
+  $('#checkCount').textContent = boxes.filter(b=>b.checked).length + ' / ' + boxes.length;
+  store.set('as_checks', boxes.map(b=>b.checked));
+}
+clEl.addEventListener('change', paintChecks);
+store.get('as_checks').then(saved=>{
+  if(Array.isArray(saved)) [...clEl.querySelectorAll('input')].forEach((b,i)=>b.checked = !!saved[i]);
+  paintChecks();
+});
+
+/* ---------- roster ---------- */
+/* the eight cards that ship in the box: front side, back side, size, suggested lance */
+const ROSTER = [
+  {name:'Locust LCT-1V',        back:'Locust LCT-1E',                sz:1, side:1},
+  {name:'Commando COM-2D',      back:'Commando COM-3A',              sz:1, side:0},
+  {name:'Shadow Hawk SHD-2H',   back:'Shadow Hawk, Durant Carlyle',  sz:2, side:0},
+  {name:'Wolverine WVR-6M',     back:'Wolverine WVR-6R',             sz:2, side:1},
+  {name:'Catapult CPLT-C1',     back:'Catapult CPLT-K2',             sz:3, side:1},
+  {name:'Thunderbolt TDR-5S',   back:'Thunderbolt TDR-5SE',          sz:3, side:0},
+  {name:'Awesome AWS-8Q',       back:'BattleMaster BLR-1G',          sz:4, side:0},
+  {name:'BattleMaster BLR-1G',  back:'Awesome AWS-8Q',               sz:4, side:1}
+];
+
+/* Official MUL Alpha Strike numbers for Ridge Line (TMM derived from Move) */
+const RIDGE_STATS = {
+  'Shadow Hawk SHD-2H': {pv:'30', mv:'10"/6"j', tmm:'2', sz:'2', s:'2', m:'2', l:'1', ov:'0', a:5, st:5, abil:'IF0*,JMPW1'},
+  'Commando COM-2D':    {pv:'17', mv:'12"',     tmm:'2', sz:'1', s:'2', m:'2', l:'0', ov:'0', a:2, st:2, abil:'SRM1/1'},
+  'Wolverine WVR-6M':   {pv:'32', mv:'10"j',    tmm:'2', sz:'2', s:'2', m:'2', l:'0', ov:'1', a:6, st:5, abil:''},
+  'Locust LCT-1V':      {pv:'18', mv:'16"',     tmm:'3', sz:'1', s:'1', m:'1', l:'0', ov:'0', a:2, st:2, abil:''}
+};
+
+const blank = name => ({
+  name, back:'', side:0, skill:4, pv:'', mv:'', tmm:'', sz:'', s:'', m:'', l:'', ov:'', abil:'',
+  a:0, st:0, aDmg:0, sDmg:0, heat:0, crits:{fc:0,eng:0,mp:0,wpn:0}, flag:''
+});
+const boxRoster = () => ROSTER.map(r => Object.assign(blank(r.name), {back:r.back, sz:r.sz, side:r.side}));
+let units = boxRoster();
+const listEl = $('#unitList');
+const isDead = u => Number(u.st) > 0 && u.sDmg >= u.st;
+const save = () => store.set('as_units', units);
+
+function pipRow(label, cap, marked, cls, idx){
+  const row = document.createElement('div');
+  row.className = 'pips';
+  const lab = document.createElement('span');
+  lab.className = 'plabel'; lab.textContent = label;
+  row.appendChild(lab);
+  for(let i=0;i<cap;i++){
+    const b = document.createElement('button');
+    b.className = 'pip ' + cls + (i < marked ? ' hit' : '');
+    b.dataset.act = 'pip'; b.dataset.i = idx; b.dataset.n = i; b.dataset.kind = cls;
+    b.setAttribute('aria-label', label + ' point ' + (i+1));
+    row.appendChild(b);
+  }
+  if(cap === 0){
+    const hint = document.createElement('span');
+    hint.className = 'hint';
+    hint.textContent = 'enter the number from the card';
+    row.appendChild(hint);
+  }
+  return row;
+}
+
+const STAT_FIELDS = [['pv','PV'],['mv','MV'],['tmm','TMM'],['sz','SZ'],['s','S'],['m','M'],['l','L'],['ov','OV'],['skill','SKILL']];
+
+function render(){
+  listEl.innerHTML = '';
+  units.forEach((u,idx)=>{
+    const dead = isDead(u);
+    const el = document.createElement('div');
+    el.className = 'unit' + (dead ? ' dead' : '');
+
+    const head = document.createElement('div');
+    head.className = 'uhead';
+    head.innerHTML =
+      '<button class="side ' + (u.side===0?'a':'b') + '" data-act="side" data-i="'+idx+'">' +
+        (u.side===0?'Side A':'Side B') + '</button>' +
+      '<input class="nm" aria-label="\u2019Mech name" data-act="name" data-i="'+idx+'" value="'+esc(u.name)+'">' +
+      (u.back ? '<button class="btn sm ghost" data-act="flip" data-i="'+idx+'" ' +
+        'title="Use the other side of this card">Flip \u2192 ' + esc(u.back) + '</button>' : '') +
+      '<button class="btn sm ghost" data-act="del" data-i="'+idx+'">Remove</button>';
+    el.appendChild(head);
+
+    const body = document.createElement('div');
+    body.className = 'ubody';
+
+    let html = '<div class="stats">';
+    STAT_FIELDS.forEach(([k,lab])=>{
+      html += '<div><span class="fld">'+lab+'</span>' +
+        '<input type="text" inputmode="numeric" aria-label="'+lab+'" data-act="stat" data-k="'+k+'" data-i="'+idx+'" value="'+esc(u[k])+'"></div>';
+    });
+    html += '</div><div class="applyrow">' +
+      '<div><span class="fld">Armor</span><input type="number" min="0" max="20" data-act="cap" data-k="a" data-i="'+idx+'" value="'+u.a+'"></div>' +
+      '<div><span class="fld">Structure</span><input type="number" min="0" max="20" data-act="cap" data-k="st" data-i="'+idx+'" value="'+u.st+'"></div>' +
+      '<span style="flex:1"></span>' +
+      '<div><span class="fld">Damage</span><input type="number" min="1" max="30" data-act="dmgval" data-i="'+idx+'" placeholder="0"></div>' +
+      '<button class="btn sm" data-act="apply" data-i="'+idx+'">Apply</button>' +
+      '<button class="btn sm ghost" data-act="repair" data-i="'+idx+'">Repair</button></div>' +
+      '<div style="margin-bottom:10px"><span class="fld">Special abilities</span>' +
+      '<input type="text" aria-label="Special abilities" data-act="stat" data-k="abil" data-i="'+idx+'" ' +
+      'placeholder="ENE, CASE, HT1/1/-" value="'+esc(u.abil)+'"></div>';
+    body.innerHTML = html;
+
+    body.appendChild(pipRow('Armor', u.a, u.aDmg, 'armor', idx));
+    body.appendChild(pipRow('Structure', u.st, u.sDmg, 'struct', idx));
+
+    const heat = document.createElement('div');
+    heat.className = 'heatrow';
+    heat.innerHTML = '<span class="plabel" style="width:66px">Heat</span>' +
+      [0,1,2,3,4].map(n =>
+        '<button class="hbtn'+(u.heat===n?' on':'')+'" data-act="heat" data-n="'+n+'" data-i="'+idx+'">' +
+        (n===4?'S':n) + '</button>').join('') +
+      '<span class="hint" style="margin-left:6px">' +
+      (u.heat===0 ? 'cool' : (u.heat>=4 ? 'shut down next turn' : '+'+u.heat+' to hit, −'+(u.heat*2)+'" MV')) + '</span>';
+    body.appendChild(heat);
+
+    const crits = document.createElement('div');
+    crits.className = 'crits';
+    [['fc','Fire control +2'],['eng','Engine'],['mp','MP · halve MV'],['wpn','Weapon −1 dmg']].forEach(([k,lab])=>{
+      const n = u.crits[k];
+      crits.innerHTML += '<button class="crit'+(n>0?' on':'')+'" title="click to add, wraps back to zero" ' +
+        'data-act="crit" data-k="'+k+'" data-i="'+idx+'">' + lab + (n>1 ? ' \u00d7'+n : '') + '</button>';
+    });
+    body.appendChild(crits);
+
+    const flag = document.createElement('div');
+    flag.className = 'flag';
+    flag.textContent = dead ? 'Destroyed — remove it in the End Phase.' : u.flag;
+    body.appendChild(flag);
+
+    el.appendChild(body);
+    listEl.appendChild(el);
+  });
+  paintBalance();
+  syncSelects();
+}
+
+function paintBalance(){
+  const bar = $('#pvBar'); if(!bar) return;
+  const tot = side => units.filter(u => u.side === side)
+                          .reduce((n,u) => n + (parseInt(u.pv,10) || 0), 0);
+  const a = tot(0), b = tot(1), gap = Math.abs(a-b);
+  const counted = units.filter(u => parseInt(u.pv,10) > 0).length;
+  let verdict;
+  if(counted === 0) verdict = 'Enter each card\u2019s PV to check the balance.';
+  else if(gap === 0) verdict = 'Dead even.';
+  else if(gap <= 5)  verdict = 'Within ' + gap + ' points \u2014 close enough to play.';
+  else verdict = gap + ' points apart \u2014 move a light \u2019Mech across.';
+  bar.innerHTML =
+    '<span class="pvside a">Side A <b>' + a + '</b> PV</span>' +
+    '<span class="pvside b">Side B <b>' + b + '</b> PV</span>' +
+    '<span class="pvverdict">' + verdict + '</span>';
+}
+
+listEl.addEventListener('click', e=>{
+  const b = e.target.closest('[data-act]'); if(!b) return;
+  const act = b.dataset.act, i = Number(b.dataset.i), u = units[i];
+  if(!u) return;
+  if(act === 'side') u.side = u.side ? 0 : 1;
+  else if(act === 'del') units.splice(i,1);
+  else if(act === 'repair'){ u.aDmg=0; u.sDmg=0; u.heat=0; u.crits={fc:0,eng:0,mp:0,wpn:0}; u.flag=''; }
+  else if(act === 'flip'){
+    const front = u.name; u.name = u.back; u.back = front;
+    /* the other side is a different \u2019Mech, so its numbers have to come off that side of the card */
+    ['pv','mv','tmm','s','m','l','ov'].forEach(k => u[k] = '');
+    u.a=0; u.st=0; u.aDmg=0; u.sDmg=0; u.heat=0; u.crits={fc:0,eng:0,mp:0,wpn:0};
+    u.flag = 'Flipped \u2014 enter this side\u2019s numbers from the card.';
+  }
+  else if(act === 'heat'){ u.heat = Number(b.dataset.n); }
+  else if(act === 'crit'){ u.crits[b.dataset.k] = (u.crits[b.dataset.k] + 1) % 4; }
+  else if(act === 'pip'){
+    const n = Number(b.dataset.n) + 1;
+    if(b.dataset.kind === 'armor') u.aDmg = (u.aDmg === n) ? n-1 : n;
+    else u.sDmg = (u.sDmg === n) ? n-1 : n;
+    u.flag = '';
+  }
+  else if(act === 'apply'){
+    const input = listEl.querySelector('[data-act="dmgval"][data-i="'+i+'"]');
+    const dmg = Number(input && input.value) || 0;
+    if(dmg <= 0) return;
+    hit(u, dmg);
+  }
+  else return;
+  render(); save();
+});
+
+/* one shared damage routine, used by the roster and the shoot tab */
+function hit(u, dmg){
+  const toArmor = Math.min(Math.max(0, u.a - u.aDmg), dmg);
+  u.aDmg += toArmor;
+  let rest = dmg - toArmor;
+  const before = u.sDmg;
+  if(rest > 0) u.sDmg = Math.min(u.st, u.sDmg + rest);
+  const bitStructure = u.sDmg > before;
+  u.flag = isDead(u) ? 'Destroyed — remove it in the End Phase.'
+    : (bitStructure ? 'Structure damaged \u2192 attacker rolls one critical hit.' : '');
+  return { bitStructure, dead: isDead(u) };
+}
+
+listEl.addEventListener('input', e=>{
+  const b = e.target.closest('[data-act]'); if(!b) return;
+  const act = b.dataset.act, i = Number(b.dataset.i), u = units[i];
+  if(!u) return;
+  if(act === 'name'){ u.name = b.value; syncSelects(); save(); }
+  else if(act === 'stat'){ u[b.dataset.k] = b.value; if(b.dataset.k==='tmm'||b.dataset.k==='skill') pullFromRoster(); save(); }
+  else if(act === 'cap'){
+    /* update the pips in place so the number field keeps focus while you type */
+    const v = Math.max(0, Math.min(20, Number(b.value) || 0));
+    u[b.dataset.k] = v;
+    if(b.dataset.k === 'a') u.aDmg = Math.min(u.aDmg, v); else u.sDmg = Math.min(u.sDmg, v);
+    const rows = b.closest('.ubody').querySelectorAll('.pips');
+    rows[0].replaceWith(pipRow('Armor', u.a, u.aDmg, 'armor', i));
+    rows[1].replaceWith(pipRow('Structure', u.st, u.sDmg, 'struct', i));
+    save();
+  }
+});
+
+$('#addUnit').addEventListener('click', ()=>{ units.push(blank('New \u2019Mech')); render(); save(); });
+$('#healAll').addEventListener('click', ()=>{
+  units.forEach(u=>{ u.aDmg=0; u.sDmg=0; u.heat=0; u.crits={fc:0,eng:0,mp:0,wpn:0}; u.flag=''; });
+  render(); save();
+});
+$('#resetUnits').addEventListener('click', ()=>{
+  units = boxRoster();
+  render(); save();
+});
+
+/* ---------- import from the MUL data endpoint ---------- */
+$('#copyUrl').addEventListener('click', ()=>{
+  const t = $('#mulUrl').textContent;
+  if(navigator.clipboard) navigator.clipboard.writeText(t).catch(()=>{});
+  $('#copyUrl').textContent = 'Copied';
+  setTimeout(()=>{ $('#copyUrl').textContent = 'Copy'; }, 1400);
+});
+
+/* Name matching — used by import and the mission engine */
+const classOf = n => { const p = String(n||'').trim().split(/\s+/);
+  return (p.length > 1 ? p.slice(0,-1).join(' ') : p.join(' ')).toLowerCase(); };
+const norm = n => String(n||'').toLowerCase().trim().replace(/\s+/g,' ');
+function findUnit(name){
+  const t = norm(name);
+  let i = units.findIndex(u => norm(u.name) === t);
+  if(i >= 0) return i;
+  const c = classOf(name);
+  return units.findIndex(u => {
+    const un = norm(u.name);
+    return un === c || un.startsWith(c + ' ') || classOf(u.name) === c;
+  });
+}
+
+function fromMul(r){
+  const mv = r.BFMove != null ? String(r.BFMove).replace(/\s+/g,'') : '';
+  const apiTmm = r.BFTMM != null ? parseInt(r.BFTMM, 10) : NaN;
+  const tmm = (!isNaN(apiTmm) && apiTmm > 0) ? apiTmm : tmmFromMv(mv);
+  return {
+    name: r.Name || r.name || '',
+    pv:   r.BFPointValue != null ? String(r.BFPointValue) : '',
+    mv,
+    tmm:  String(tmm),
+    sz:   r.BFSize != null ? String(r.BFSize) : '',
+    s:    r.BFDamageShort  != null ? String(r.BFDamageShort)  : '',
+    m:    r.BFDamageMedium != null ? String(r.BFDamageMedium) : '',
+    l:    r.BFDamageLong   != null ? String(r.BFDamageLong)   : '',
+    ov:   r.BFOverheat != null ? String(r.BFOverheat) : '',
+    abil: r.BFAbilities || '',
+    a:    Math.max(0, Math.min(20, parseInt(r.BFArmor, 10)     || 0)),
+    st:   Math.max(0, Math.min(20, parseInt(r.BFStructure, 10) || 0))
+  };
+}
+
+function importPaste(raw, onlyNames){
+  if(!raw || !raw.trim()) return {err:'Paste the MUL response first.'};
+  let data;
+  try { data = JSON.parse(raw.trim()); }
+  catch(e){ return {err:'That is not the whole response \u2014 copy everything from the { to the final }.'}; }
+  const rows = Array.isArray(data) ? data : (Array.isArray(data.Units) ? data.Units : [data]);
+  let usable = rows.filter(r => r && (r.Name || r.name) && r.BFArmor != null);
+  if(onlyNames){
+    const wanted = onlyNames.map(n => norm(n));
+    usable = usable.filter(r => wanted.includes(norm(r.Name || r.name)));
+    /* Prefer exact variant match when QuickList returns many siblings */
+    if(usable.length > onlyNames.length){
+      usable = onlyNames.map(n => usable.find(r => norm(r.Name || r.name) === norm(n))).filter(Boolean);
+    }
+  }
+  if(!usable.length) return {err:'No matching Alpha Strike stats in that paste.'};
+  let added = 0, updated = 0;
+  usable.forEach(r=>{
+    const inc = fromMul(r);
+    const at = findUnit(inc.name);
+    if(at >= 0){ Object.assign(units[at], inc); updated++; }
+    else { units.push(Object.assign(blank(inc.name), inc, {side: units.length % 2})); added++; }
+  });
+  render(); save();
+  return {added, updated};
+}
+
+function importReport(res){
+  if(res.err) return res.err;
+  return (res.updated ? res.updated + ' updated' : '') +
+         (res.updated && res.added ? ', ' : '') +
+         (res.added ? res.added + ' added' : '') + '.';
+}
+
+$('#importBtn').addEventListener('click', ()=>{
+  const res = importPaste($('#importBox').value);
+  if(!res.err) $('#importBox').value = '';
+  $('#importOut').textContent = importReport(res);
+  if(typeof missionReady === 'function'){ missionReady(); mPaint(); }
+});
+
+/* ---------- SATOR ---------- */
+const sat = { skill:4, atk:0, sprint:false, tgt:'ground', tmm:1, terrain:0, stl:false,
+              fc:0, heat:0, rng:0, rear:false, ov:0 };
+let currentTN = 5;
+
+function syncSelects(){
+  ['#atkSel','#tgtSel'].forEach(sel=>{
+    const el = $(sel); if(!el) return;
+    const cur = el.value;
+    el.innerHTML = '<option value="">— enter manually —</option>' +
+      units.map((u,i)=>'<option value="'+i+'">'+esc(u.name || 'Unnamed')+'</option>').join('');
+    el.value = (cur !== '' && units[Number(cur)]) ? cur : '';
+  });
+}
+function setPressed(group, val){
+  document.querySelectorAll('[data-group="'+group+'"] .opt').forEach(b=>
+    b.setAttribute('aria-pressed', String(b.dataset.v === String(val))));
+}
+function pullFromRoster(){
+  const ai = $('#atkSel').value;
+  if(ai !== '' && units[ai]){
+    const u = units[ai];
+    const sk = Math.max(2, Math.min(5, num(u.skill, 4)));
+    sat.skill = sk; setPressed('skill', sk);
+    sat.fc = u.crits.fc; sat.heat = u.heat;
+    $('#dS_').value = u.s; $('#dM_').value = u.m; $('#dL_').value = u.l;
+  }
+  const ti = $('#tgtSel').value;
+  if(ti !== '' && units[ti]){
+    sat.tmm = num(units[ti].tmm, 0);
+    $('#tmmIn').value = sat.tmm;
+  }
+  paintSteppers(); paint();
+}
+$('#atkSel').addEventListener('change', pullFromRoster);
+$('#tgtSel').addEventListener('change', pullFromRoster);
+
+document.querySelectorAll('.sator .opts, .dmgbox .opts').forEach(group=>{
+  group.addEventListener('click', e=>{
+    const b = e.target.closest('.opt'); if(!b) return;
+    const name = group.dataset.group, v = b.dataset.v;
+    if(name === 'other'){
+      const on = b.getAttribute('aria-pressed') === 'true';
+      b.setAttribute('aria-pressed', String(!on));
+      sat.terrain = [...document.querySelectorAll('[data-group="other"] .opt[aria-pressed=true]')]
+        .filter(x => x.dataset.v !== 'stl').reduce((s,x)=>s + Number(x.dataset.v), 0);
+      sat.stl = document.querySelector('[data-group="other"] .opt[data-v="stl"]').getAttribute('aria-pressed') === 'true';
+    } else if(v === 'rear'){
+      sat.rear = b.getAttribute('aria-pressed') !== 'true';
+      b.setAttribute('aria-pressed', String(sat.rear));
+    } else {
+      [...group.children].forEach(x=>x.setAttribute('aria-pressed', String(x === b)));
+      if(name === 'skill') sat.skill = Number(v);
+      else if(name === 'atk'){ sat.sprint = (v === 'sprint'); sat.atk = sat.sprint ? 0 : Number(v); }
+      else if(name === 'tgt') sat.tgt = v;
+      else if(name === 'rng'){ sat.rng = Number(v); $('#distIn').value = ''; }
+    }
+    paint();
+  });
+});
+
+$('#tmmIn').addEventListener('input', e=>{ sat.tmm = Math.max(0, num(e.target.value, 0)); paint(); });
+$('#distIn').addEventListener('input', e=>{
+  const d = parseFloat(e.target.value);
+  if(isNaN(d)) return;
+  sat.rng = d <= 6 ? 0 : (d <= 24 ? 2 : (d <= 42 ? 4 : 99));
+  setPressed('rng', sat.rng === 99 ? -1 : sat.rng);
+  paint();
+});
+['#dS_','#dM_','#dL_'].forEach(s => $(s).addEventListener('input', paint));
+
+document.querySelectorAll('.stepper').forEach(st=>{
+  st.addEventListener('click', e=>{
+    const b = e.target.closest('button'); if(!b) return;
+    const key = st.dataset.st, d = Number(b.dataset.d);
+    const max = key === 'heat' ? 4 : (key === 'ov' ? 4 : 3);
+    sat[key] = Math.max(0, Math.min(max, sat[key] + d));
+    paintSteppers(); paint();
+  });
+});
+function paintSteppers(){
+  document.querySelectorAll('.stepper').forEach(st=>{
+    st.querySelector('.sv').textContent = sat[st.dataset.st];
+  });
+}
+
+function targetMod(){
+  if(sat.tgt === 'ground') return sat.tmm;
+  if(sat.tgt === 'jump')   return sat.tmm + 1;
+  return Number(sat.tgt);
+}
+
+function paint(){
+  const t = targetMod();
+  const stl = sat.stl ? (sat.rng === 2 ? 1 : (sat.rng === 4 ? 2 : 0)) : 0;
+  const other = sat.terrain + stl + sat.fc*2 + sat.heat;
+  const runA = sat.skill + sat.atk;
+  const runT = runA + t;
+  const runO = runT + other;
+  const runR = runO + (sat.rng === 99 ? 0 : sat.rng);
+
+  $('#tS').textContent = sat.skill;
+  $('#dA').textContent = sat.sprint ? 'sprint' : sign(sat.atk);
+  $('#tA').textContent = runA;
+  $('#dT').textContent = sign(t);
+  $('#tT').textContent = runT;
+  $('#dO').textContent = sign(other);
+  $('#tO').textContent = runO;
+  $('#dR').textContent = sat.rng === 99 ? 'out' : sign(sat.rng);
+  $('#tR').textContent = runR;
+
+  const big = $('#tnBig'), odds = $('#tnOdds');
+  currentTN = runR;
+  let pct = 0;
+  if(sat.sprint){
+    big.textContent = 'No attack'; big.classList.add('miss');
+    odds.textContent = 'A sprinting \u2019Mech cannot attack at all this turn';
+  } else if(sat.rng === 99){
+    big.textContent = 'Out of range'; big.classList.add('miss');
+    odds.textContent = 'Nothing reaches beyond 42 inches';
+  } else if(runR > 12){
+    big.textContent = 'No shot'; big.classList.add('miss');
+    odds.textContent = 'Target number above 12 — the attack automatically misses';
+  } else {
+    big.textContent = Math.max(2, runR); big.classList.remove('miss');
+    pct = oddsFor(runR);
+    odds.textContent = pct + '% chance to hit';
+  }
+  $('#tnBar').style.width = pct + '%';
+  $('#atkOut').innerHTML = '';
+  paintDamage();
+}
+
+function paintDamage(){
+  const box = sat.rng === 0 ? '#dS_' : (sat.rng === 2 ? '#dM_' : '#dL_');
+  const base = $(box).value === '' ? null : num($(box).value, 0);
+  const note = $('#dmgNote');
+  if(base === null || sat.rng === 99){
+    $('#dmgTot').textContent = '—';
+    note.textContent = base === null ? 'Enter the damage values from the attacker\u2019s card.' : '';
+    return;
+  }
+  const ai = $('#atkSel').value;
+  const wpn = (ai !== '' && units[ai]) ? units[ai].crits.wpn : 0;
+  const longNoOV = sat.rng === 4;
+  const ovAdd = longNoOV ? 0 : sat.ov;
+  const total = Math.max(0, base - wpn) + (sat.rear ? 1 : 0) + ovAdd;
+  $('#dmgTot').textContent = total;
+  const bits = [];
+  if(wpn) bits.push('−' + wpn + ' weapon hits');
+  if(sat.rear) bits.push('+1 rear');
+  if(ovAdd) bits.push('+' + ovAdd + ' overheat, take ' + ovAdd + ' heat in the End Phase');
+  if(longNoOV && sat.ov) bits.push('overheat adds nothing at long range without OVL');
+  note.textContent = bits.join(' · ');
+}
+
+$('#rollAtk').addEventListener('click', ()=>{
+  const out = $('#atkOut');
+  if(sat.sprint){ out.innerHTML = '<span class="no">Sprinted — no attack.</span>'; return; }
+  if(sat.rng === 99 || currentTN > 12){ out.innerHTML = '<span class="no">No shot to roll.</span>'; return; }
+  const need = Math.max(2, currentTN);
+  const r = roll2();
+  const hitIt = r.total >= need;
+  out.innerHTML = r.a + ' + ' + r.b + ' = ' + r.total + ' \u2192 ' +
+    (hitIt ? '<span class="hit">HIT</span>' : '<span class="no">MISS</span>') +
+    (hitIt && r.total === 12 ? '<br><span class="hit">Natural 12 — roll a critical too</span>' : '');
+});
+
+$('#applyToTarget').addEventListener('click', ()=>{
+  const ti = $('#tgtSel').value;
+  const note = $('#dmgNote');
+  if(ti === '' || !units[ti]){ note.textContent = 'Pick a target from the roster first.'; return; }
+  const total = num($('#dmgTot').textContent, 0);
+  if(total <= 0){ note.textContent = 'Enter the attacker\u2019s damage values first.'; return; }
+  if(units[ti].a === 0 && units[ti].st === 0){
+    note.textContent = 'Set that \u2019Mech\u2019s armor and structure on the Roster tab first.'; return;
+  }
+  const res = hit(units[ti], total);
+  const ai = $('#atkSel').value;
+  if(ai !== '' && units[ai] && sat.ov > 0 && sat.rng !== 4){
+    units[ai].heat = Math.min(4, units[ai].heat + sat.ov);
+  }
+  render(); save();
+  note.textContent = total + ' marked on ' + units[ti].name +
+    (res.dead ? ' — destroyed.' : (res.bitStructure ? ' — roll a critical hit.' : '.'));
+});
+
+/* ---------- critical roller ---------- */
+const CRIT = {
+  2:['Ammo hit','Destroyed unless the card shows ENE, CASE or CASEII'],
+  3:['Engine hit','Gains 1 heat whenever it fires. Second engine hit destroys it.'],
+  4:['Fire control hit','+2 to all its target numbers from now on'],
+  5:['No critical hit','Nothing happens'],
+  6:['Weapon hit','All damage values drop by 1'],
+  7:['MP hit','Halve its MV and TMM, rounding down'],
+  8:['Weapon hit','All damage values drop by 1'],
+  9:['No critical hit','Nothing happens'],
+  10:['Fire control hit','+2 to all its target numbers from now on'],
+  11:['Engine hit','Gains 1 heat whenever it fires'],
+  12:['\u2019Mech destroyed','Remove it at the end of this turn']
+};
+$('#rollCrit').addEventListener('click', ()=>{
+  const r = roll2(), c = CRIT[r.total];
+  $('#critOut').innerHTML = r.a + ' + ' + r.b + ' = <b>' + r.total + '</b> — ' + c[0] +
+    '<br><span style="color:#8d9aa8">' + c[1] + '</span>';
+});
+
+/* ---------- odds table ---------- */
+const oddsTable = $('#oddsTable');
+for(let tn=2; tn<=12; tn++){
+  const tr = document.createElement('tr');
+  tr.innerHTML = '<td class="num">' + tn + '+</td><td>' + oddsFor(tn) + '%</td>';
+  oddsTable.appendChild(tr);
+}
+
+
+/* ================= GUIDED MISSION ENGINE ================= */
+const MISSION = [
+  {name:'Shadow Hawk SHD-2H', side:0},
+  {name:'Commando COM-2D',    side:0},
+  {name:'Wolverine WVR-6M',   side:1},
+  {name:'Locust LCT-1V',      side:1}
+];
+const SIDE_NAME = ['Lance A','Lance B'];
+const MAX_TURNS = 6;
+
+let M = { step:'setup', turn:1, phase:0, first:null, nextSide:null,
+          mode:{}, fired:{}, atk:null, tgt:null, rng:0, woods:false, rear:false, log:[] };
+
+const mIdx = () => MISSION.map(m => findUnit(m.name));
+const alive = i => { const u = units[i]; return !!(u && !isDead(u)); };
+const sideUnits = sd => mIdx().filter(i => i >= 0 && units[i].side === sd);
+const livingOf = sd => sideUnits(sd).filter(alive);
+const effTmm = u => Math.max(0, Math.floor((parseInt(u.tmm,10)||0) / Math.pow(2, u.crits.mp||0)));
+const dmgAt = (u,r) => Math.max(0, (parseInt(r===0?u.s:(r===2?u.m:u.l),10)||0) - (u.crits.wpn||0));
+
+function healUnit(u){
+  if(!u) return;
+  u.aDmg = 0; u.sDmg = 0; u.heat = 0;
+  u.crits = {fc:0, eng:0, mp:0, wpn:0};
+  u.flag = '';
+}
+
+function resetMissionDamage(){
+  mIdx().forEach(i => { if(i >= 0) healUnit(units[i]); });
+}
+
+function applyRidgeStats(u, name){
+  const stats = RIDGE_STATS[name];
+  if(!stats) return;
+  Object.assign(u, stats, {skill: 4});
+}
+
+function missionReady(){
+  const idx = mIdx();
+  const rows = MISSION.map((m,n)=>{
+    const i = idx[n];
+    if(i < 0) return {name:m.name, ok:false, why:'not in the roster'};
+    const u = units[i];
+    const miss = [];
+    if(!u.a) miss.push('armor');
+    if(!u.st) miss.push('structure');
+    if(u.s === '' && u.m === '' && u.l === '') miss.push('damage');
+    if(u.mv === '') miss.push('MV');
+    if(u.tmm === '') miss.push('TMM');
+    return {name:m.name, ok:!miss.length, why:miss.join(', ') + ' missing'};
+  });
+  const el = $('#readyList');
+  if(el) el.innerHTML = rows.map(r =>
+    '<div class="rdy"><span class="' + (r.ok?'ok':'no') + '">' + (r.ok?'\u2713':'\u2717') + '</span> ' +
+    esc(r.name) + (r.ok ? '' : ' \u2014 ' + r.why) + '</div>').join('') +
+    (rows.every(r=>r.ok) ? '' :
+      '<div class="rdy" style="margin-top:8px;color:var(--muted)">Press <b>Load Ridge Line forces</b> above to fill these in.</div>');
+  const ok = rows.every(r => r.ok);
+  const tag = $('#readyTag'); if(tag) tag.textContent = ok ? 'ready' : 'not ready';
+  return ok;
+}
+
+function mLog(txt, cls){
+  M.log.push('<div class="' + (cls||'') + '">' + txt + '</div>');
+  if(M.log.length > 40) M.log.shift();
+}
+
+function mSay(main, small){
+  $('#mPrompt').innerHTML = main + (small ? '<span class="small">' + small + '</span>' : '');
+}
+function mBtns(list){
+  $('#mControls').innerHTML = '<div class="mrow">' + list.join('') + '</div>';
+}
+function btn(label, act, extra, cls){
+  return '<button class="mbtn ' + (cls||'') + '" data-m="' + act + '"' + (extra||'') + '>' + label + '</button>';
+}
+
+function mStatus(){
+  const idx = mIdx();
+  $('#mStatus').innerHTML = idx.filter(i=>i>=0).map(i=>{
+    const u = units[i];
+    const dead = !alive(i);
+    const mode = M.mode[i];
+    const state = dead ? 'destroyed'
+      : (M.phase === 1 && mode ? mode
+        : (M.phase === 2 && M.fired[i] ? 'has fired'
+          : (M.phase === 2 && mode ? mode : 'ready')));
+    return '<div class="mcard ' + (u.side===0?'sa':'sb') + (dead?' out':'') + '">' +
+      '<div class="mn">' + esc(u.name.split(' ').slice(0,2).join(' ')) + '</div>' +
+      '<div class="st">A ' + (u.a-u.aDmg) + '/' + u.a + ' \u00b7 S <b>' + (u.st-u.sDmg) + '</b>/' + u.st + '</div>' +
+      '<div class="st">' + state + '</div></div>';
+  }).join('');
+  $('#mLog').innerHTML = M.log.slice(-14).join('');
+  $('#mLog').scrollTop = 9999;
+  const tag = $('#mTurnTag');
+  if(tag) tag.textContent = M.step === 'over' ? 'Mission complete'
+    : 'Turn ' + M.turn + ' \u00b7 ' + ['Initiative','Movement','Combat','End'][M.phase];
+  turn = M.turn; phase = M.phase; paintTurn();
+}
+
+/* ---- the state machine ---- */
+function mPaint(){
+  const C = $('#mControls');
+  if(M.step === 'setup'){
+    mSay('Finish Step 1, then press Start.',
+         'The mission needs each card\u2019s armor, structure, damage, MV and TMM.');
+    mBtns([btn('Start the mission','start','', 'go')]);
+    mStatus(); return;
+  }
+  if(M.step === 'over'){ mBtns([btn('Play it again','restart','','go')]); mStatus(); return; }
+
+  if(M.phase === 0){
+    mSay('Both players roll 2D6.',
+         'Highest wins initiative \u2014 and the winner acts <b>last</b> all turn.');
+    mBtns([btn('Roll for both','init','','go')]);
+  }
+  else if(M.phase === 1){
+    if(M.step === 'pick-mode'){
+      const u = units[M.atk];
+      if(!u){ M.step = 'pick-mover'; nextMover(); mPaint(); return; }
+      const jumps = /j/i.test(String(u.mv));
+      mSay('How did the <b>' + esc(u.name) + '</b> move?',
+           'MV ' + esc(u.mv) + '. Move it on the table now, then tell me which.');
+      mBtns([
+        btn('Stand still<small>\u22121 to hit \u00b7 easy to hit</small>','mode:stand'),
+        btn('Walk / run<small>up to MV \u00b7 TMM ' + effTmm(u) + '</small>','mode:ground'),
+        btn('Jump<small>' + (jumps ? '+2 to hit \u00b7 TMM ' + (effTmm(u)+1) : 'no jump jets') + '</small>',
+            'mode:jump', jumps ? '' : ' disabled style="opacity:.35;cursor:not-allowed"'),
+        btn('Sprint<small>MV \u00d7 1.5 \u00b7 cannot shoot</small>','mode:sprint')
+      ]);
+    } else {
+      const sd = M.nextSide;
+      const pend = livingOf(sd).filter(i => !M.mode[i]);
+      if(!pend.length){
+        nextMover();
+        if(M.phase !== 1){ mPaint(); return; }
+      }
+      const pend2 = livingOf(M.nextSide).filter(i => !M.mode[i]);
+      mSay('<b>' + SIDE_NAME[M.nextSide] + '</b> \u2014 move one \u2019Mech.',
+           'Initiative loser moves first, then you alternate one at a time.');
+      mBtns(pend2.length
+        ? pend2.map(i => btn(esc(units[i].name.split(' ')[0]) +
+            '<small>MV ' + esc(units[i].mv) + '</small>', 'move:' + i))
+        : [btn('Continue to combat','noop-combat','','go')]);
+    }
+  }
+  else if(M.phase === 2){
+    const sd = M.nextSide;
+    if(M.step === 'pick-target'){
+      const a = units[M.atk];
+      const foes = livingOf(sd === 0 ? 1 : 0);
+      if(!a){ M.step = 'pick-attacker'; nextFirer(); mPaint(); return; }
+      if(!foes.length){
+        mSay('No living targets left for the <b>' + esc(a.name) + '</b>.',
+             'Skip this attack, or the other side still gets parting shots if any remain.');
+        mBtns([btn('Skip — no target','skip','','go')]);
+      } else {
+        mSay('Who is the <b>' + esc(a.name) + '</b> shooting at?',
+             'Check line of sight and that the target sits in its front arc.');
+        mBtns(foes.map(i => btn(esc(units[i].name.split(' ')[0]) +
+          '<small>A ' + (units[i].a-units[i].aDmg) + ' \u00b7 S ' + (units[i].st-units[i].sDmg) + '</small>',
+          'target:' + i)));
+      }
+    }
+    else if(M.step === 'resolve'){
+      const a = units[M.atk], t = units[M.tgt];
+      if(!a || !t){ M.step = 'pick-attacker'; nextFirer(); mPaint(); return; }
+      const tn = mTN();
+      const dm = dmgAt(a, M.rng) + (M.rear ? 1 : 0);
+      mSay('<span class="mtn">' + (tn > 12 ? '\u2014' : Math.max(2,tn)) + '</span>' +
+           (tn > 12 ? 'No shot \u2014 target number over 12.' : 'Roll 2D6. You need ' + Math.max(2,tn) + ' or better.'),
+           tn > 12 ? 'Pick a closer range or a different target.' :
+             oddsFor(tn) + '% to hit \u00b7 ' + dm + ' damage if it lands \u00b7 ' +
+             esc(a.name.split(' ')[0]) + ' \u2192 ' + esc(t.name.split(' ')[0]));
+      C.innerHTML =
+        '<div class="mrow"><span class="cap" style="width:64px">Range</span>' +
+        btn('Short<small>\u2264 6"</small>','rng:0',' aria-pressed="' + (M.rng===0) + '"') +
+        btn('Medium<small>\u2264 24"</small>','rng:2',' aria-pressed="' + (M.rng===2) + '"') +
+        btn('Long<small>\u2264 42"</small>','rng:4',' aria-pressed="' + (M.rng===4) + '"') + '</div>' +
+        '<div class="mrow"><span class="cap" style="width:64px">Extras</span>' +
+        btn('In or behind woods','woods',' aria-pressed="' + M.woods + '"') +
+        btn('Shot from behind','rear',' aria-pressed="' + M.rear + '"') + '</div>' +
+        '<div class="mrow">' +
+        (tn > 12 ? btn('Skip this attack','skip') : btn('Roll the dice','fire','','go')) +
+        btn('Different target','back') + '</div>';
+    }
+    else {
+      nextFirer();
+      if(M.phase !== 2){ mPaint(); return; }
+      const pend = firePool(M.nextSide);
+      mSay('<b>' + SIDE_NAME[M.nextSide] + '</b> \u2014 pick a \u2019Mech to attack with.',
+           'This side resolves <b>all</b> of its attacks before the other side fires.');
+      mBtns(pend.length
+        ? pend.map(i => {
+            const wrecked = !alive(i);
+            return btn(esc(units[i].name.split(' ')[0]) +
+              '<small>' + (wrecked ? 'wrecked \u2014 still fires' : (M.mode[i] || 'ready')) + '</small>',
+              'attacker:' + i);
+          })
+        : [btn('Continue','noop-fire','','go')]);
+    }
+  }
+  else if(M.phase === 3){
+    mSay('End of turn ' + M.turn + '.',
+         'Destroyed \u2019Mechs come off the table now. Heat and forced withdrawal are off this game.');
+    mBtns([btn('Start turn ' + (M.turn+1),'endturn','','go')]);
+  }
+  mStatus();
+}
+
+function mTN(){
+  const a = units[M.atk], t = units[M.tgt];
+  const am = M.mode[M.atk] === 'stand' ? -1 : (M.mode[M.atk] === 'jump' ? 2 : 0);
+  const tmode = M.mode[M.tgt];
+  const tm = tmode === 'stand' ? 0 : (tmode === 'jump' ? effTmm(t) + 1 : effTmm(t));
+  const skill = Math.max(2, Math.min(5, parseInt(a.skill,10) || 4));
+  return skill + am + tm + (M.woods ? 1 : 0) + (a.crits.fc||0)*2 + M.rng;
+}
+
+function applyCrit(u){
+  const r = roll2();
+  let txt;
+  if(r.total === 2){
+    if(/ENE|CASE/i.test(u.abil || '')) txt = 'ammo hit shrugged off (ENE/CASE)';
+    else { u.sDmg = u.st; txt = 'AMMO EXPLOSION \u2014 destroyed'; }
+  } else if(r.total === 3 || r.total === 11){
+    u.crits.eng++;
+    txt = u.crits.eng >= 2 ? 'second engine hit \u2014 destroyed' : 'engine hit';
+    if(u.crits.eng >= 2) u.sDmg = u.st;
+  } else if(r.total === 4 || r.total === 10){ u.crits.fc++; txt = 'fire control \u2014 +2 to its attacks'; }
+  else if(r.total === 6 || r.total === 8){ u.crits.wpn++; txt = 'weapon hit \u2014 all its damage \u22121'; }
+  else if(r.total === 7){ u.crits.mp++; txt = 'MP hit \u2014 MV and TMM halved'; }
+  else if(r.total === 12){ u.sDmg = u.st; txt = 'CRITICAL \u2014 destroyed'; }
+  else txt = 'no critical';
+  return 'crit ' + r.total + ': ' + txt;
+}
+
+function nextMover(){
+  const other = M.nextSide === 0 ? 1 : 0;
+  if(livingOf(other).some(i => !M.mode[i])) M.nextSide = other;
+  else if(!livingOf(M.nextSide).some(i => !M.mode[i])){
+    M.phase = 2; M.nextSide = M.first; M.step = 'pick-attacker';
+    M.combatAlive = livingOf(0).concat(livingOf(1));
+    mLog('\u2014 combat phase \u2014','tt');
+    nextFirer();
+  }
+}
+
+/* everyone who was standing when combat opened still gets their shot */
+const firePool = sd => (M.combatAlive || []).filter(i =>
+  units[i].side === sd && !M.fired[i] && M.mode[i] !== 'sprint');
+
+function nextFirer(){
+  /* Do not end combat just because one side is wiped — wrecked 'Mechs still fire */
+  if(firePool(M.nextSide).length) return;
+  const other = M.nextSide === 0 ? 1 : 0;
+  if(firePool(other).length){ M.nextSide = other; M.step = 'pick-attacker'; return; }
+  M.phase = 3; M.step = 'end';
+}
+
+function checkVictory(){
+  const a = livingOf(0).length, b = livingOf(1).length;
+  if(a && b) return null;
+  if(!a && !b) return 'Both lances wiped out \u2014 a draw.';
+  return SIDE_NAME[a ? 0 : 1] + ' wins \u2014 every enemy \u2019Mech destroyed.';
+}
+
+function mAct(cmd){
+  const [k, v] = cmd.split(':');
+
+  if(k === 'start'){
+    if(!missionReady()){ mSay('Not yet \u2014 some cards are still missing numbers.',
+      'Press Load Ridge Line forces in Step 1.'); mStatus(); return; }
+    resetMissionDamage();
+    render(); save();
+    M = { step:'go', turn:1, phase:0, first:null, nextSide:null, combatAlive:[],
+          mode:{}, fired:{}, atk:null, tgt:null, rng:0, woods:false, rear:false, log:[] };
+    mLog('\u2014 turn 1 \u2014','tt');
+  }
+  else if(k === 'restart'){ mAct('start'); return; }
+  else if(k === 'noop-combat'){ nextMover(); }
+  else if(k === 'noop-fire'){ nextFirer(); }
+
+  else if(k === 'init'){
+    let p1, p2; do { p1 = roll2(); p2 = roll2(); } while (p1.total === p2.total);
+    const aWins = p1.total > p2.total;
+    M.first = aWins ? 1 : 0;
+    init = { winner: SIDE_NAME[aWins?0:1], loser: SIDE_NAME[M.first] };
+    mLog('initiative: A ' + p1.total + ', B ' + p2.total + ' \u2014 ' +
+         SIDE_NAME[aWins?0:1] + ' wins, so ' + SIDE_NAME[M.first] + ' goes first');
+    M.phase = 1; M.nextSide = M.first; M.step = 'pick-mover';
+  }
+
+  else if(k === 'move'){
+    const idx = Number(v);
+    if(!alive(idx) || M.mode[idx]) return;
+    M.atk = idx; M.step = 'pick-mode';
+  }
+  else if(k === 'mode'){
+    if(M.atk == null || !units[M.atk]) return;
+    if(v === 'jump' && !/j/i.test(String(units[M.atk].mv))) return;
+    M.mode[M.atk] = v;
+    mLog(units[M.atk].name.split(' ')[0] + ' \u2014 ' + v);
+    M.step = 'pick-mover';
+    nextMover();
+  }
+
+  else if(k === 'attacker'){
+    const idx = Number(v);
+    if(M.fired[idx]) return;
+    if(M.mode[idx] === 'sprint'){
+      M.fired[idx] = true;
+      mLog(units[idx].name.split(' ')[0] + ' sprinted \u2014 no attack');
+      nextFirer();
+    } else { M.atk = idx; M.step = 'pick-target'; M.rng = 0; M.woods = false; M.rear = false; }
+  }
+  else if(k === 'target'){
+    const idx = Number(v);
+    if(!alive(idx)) return;
+    M.tgt = idx; M.step = 'resolve';
+  }
+  else if(k === 'rng'){ M.rng = Number(v); }
+  else if(k === 'woods'){ M.woods = !M.woods; }
+  else if(k === 'rear'){ M.rear = !M.rear; }
+  else if(k === 'back'){ M.step = 'pick-target'; }
+  else if(k === 'skip'){ M.fired[M.atk] = true; M.step = 'pick-attacker'; nextFirer(); }
+  else if(k === 'fire'){
+    const a = units[M.atk], t = units[M.tgt];
+    if(!a || !t){ M.step = 'pick-attacker'; nextFirer(); mPaint(); return; }
+    const tn = mTN(), r = roll2();
+    const name = a.name.split(' ')[0], tname = t.name.split(' ')[0];
+    if(r.total >= Math.max(2, tn) && tn <= 12){
+      const dm = dmgAt(a, M.rng) + (M.rear ? 1 : 0);
+      const res = hit(t, dm);
+      let line = name + ' hits ' + tname + ' (' + r.total + ' vs ' + Math.max(2,tn) + ') for ' + dm;
+      if(res.bitStructure || r.total === 12) line += ' \u2014 ' + applyCrit(t);
+      if(!alive(M.tgt)) line += ' \u2014 ' + tname + ' DESTROYED';
+      mLog(line, alive(M.tgt) ? 'hi' : 'lo');
+    } else {
+      mLog(name + ' misses ' + tname + ' (' + r.total + ' vs ' + Math.max(2,tn) + ')');
+    }
+    M.fired[M.atk] = true;
+    if(!alive(M.atk)) mLog(name + ' was already wrecked \u2014 its shot still counted','tt');
+    render(); save();
+    M.step = 'pick-attacker';
+    nextFirer();
+  }
+
+  else if(k === 'endturn'){
+    const done = checkVictory();
+    if(done){ M.step = 'over'; mSay(done, 'Press Restart to play again with healed cards.'); mLog(done,'tt'); mPaint(); return; }
+    if(M.turn >= MAX_TURNS){
+      const sA = livingOf(0).reduce((n,i)=>n + (units[i].st - units[i].sDmg), 0);
+      const sB = livingOf(1).reduce((n,i)=>n + (units[i].st - units[i].sDmg), 0);
+      const verdict = sA === sB ? 'Turn limit \u2014 dead heat, ' + sA + ' structure each.'
+        : SIDE_NAME[sA > sB ? 0 : 1] + ' wins on structure remaining \u2014 Lance A ' + sA +
+          ', Lance B ' + sB + '.';
+      M.step = 'over'; mSay(verdict, 'Press Restart to play again.'); mLog(verdict,'tt'); mPaint(); return;
+    }
+    M.turn++; M.phase = 0; M.mode = {}; M.fired = {}; M.combatAlive = []; M.step = 'go';
+    mLog('\u2014 turn ' + M.turn + ' \u2014','tt');
+  }
+  mPaint();
+}
+
+document.getElementById('mControls').addEventListener('click', e=>{
+  const b = e.target.closest('[data-m]');
+  if(b && !b.disabled) mAct(b.dataset.m);
+});
+$('#mRestart').addEventListener('click', ()=>mAct('restart'));
+$('#loadMission').addEventListener('click', ()=>{
+  let created = 0, renamed = 0;
+  MISSION.forEach(m=>{
+    let i = findUnit(m.name);
+    if(i < 0){ units.push(blank(m.name)); i = units.length - 1; created++; }
+    else if(units[i].name !== m.name){ units[i].name = m.name; renamed++; }
+    units[i].side = m.side;
+    applyRidgeStats(units[i], m.name);
+    healUnit(units[i]);
+  });
+  render(); save(); missionReady(); quickGrid(); mPaint();
+  $('#sidesOut').textContent = 'Lance A: Shadow Hawk, Commando \u00b7 Lance B: Wolverine, Locust \u2014 stats loaded.' +
+    (created ? ' (' + created + ' added)' : '') +
+    (renamed ? ' (' + renamed + ' relabelled)' : '');
+});
+
+/* ---- Step 1 helpers: links, auto-fetch, paste, hand entry ---- */
+const MUL_API = 'https://masterunitlist.azurewebsites.net/Unit/QuickList?Name=';
+const MISSION_CODES = ['SHD-2H','COM-2D','WVR-6M','LCT-1V'];
+
+$('#mulLinks').innerHTML = MISSION.map((m,n)=>
+  '<a class="mbtn" style="text-decoration:none" target="_blank" rel="noopener" href="' +
+  MUL_API + MISSION_CODES[n] + '">' + esc(m.name.split(' ')[0]) +
+  '<small>' + MISSION_CODES[n] + '</small></a>').join('');
+
+$('#mImportBtn').addEventListener('click', ()=>{
+  const res = importPaste($('#mImportBox').value);
+  if(!res.err) $('#mImportBox').value = '';
+  $('#mImportOut').textContent = importReport(res);
+  missionReady(); quickGrid(); mPaint();
+});
+
+$('#autoFetch').addEventListener('click', async ()=>{
+  const out = $('#fetchOut');
+  out.textContent = 'trying\u2026';
+  let got = 0, failed = 0;
+  for(let n = 0; n < MISSION_CODES.length; n++){
+    try {
+      const r = await fetch(MUL_API + MISSION_CODES[n]);
+      const txt = await r.text();
+      const res = importPaste(txt, [MISSION[n].name]);
+      if(res.err) failed++; else got++;
+    } catch(e){ failed++; }
+  }
+  missionReady(); quickGrid(); mPaint();
+  out.textContent = got === 4 ? 'All four loaded.'
+    : (got ? got + ' loaded, ' + failed + ' blocked \u2014 use B or C for the rest.'
+           : 'Blocked by the browser \u2014 use B or C below.');
+});
+
+/* hand entry straight off the cards */
+const GRID_COLS = [['pv','PV'],['mv','MV'],['tmm','TMM'],['s','S'],['m','M'],['l','L'],['a','A'],['st','STR']];
+function quickGrid(){
+  const g = $('#quickGrid'); if(!g) return;
+  const idx = mIdx();
+  g.innerHTML = '<tr><th>\u2019Mech</th>' + GRID_COLS.map(c=>'<th>'+c[1]+'</th>').join('') + '</tr>' +
+    MISSION.map((m,n)=>{
+      const i = idx[n];
+      if(i < 0) return '<tr><td class="nmcell">' + esc(m.name.split(' ')[0]) +
+        '</td><td colspan="8" class="hint">press Set the sides first</td></tr>';
+      const u = units[i];
+      return '<tr><td class="nmcell">' + esc(m.name.split(' ')[0]) + '</td>' +
+        GRID_COLS.map(c => '<td><input type="text" inputmode="numeric" aria-label="' +
+          esc(m.name) + ' ' + c[1] + '" data-q="' + n + '" data-k="' + c[0] + '" value="' +
+          esc(u[c[0]]) + '"></td>').join('') + '</tr>';
+    }).join('');
+}
+$('#quickGrid').addEventListener('input', e=>{
+  const el = e.target.closest('[data-q]'); if(!el) return;
+  const i = mIdx()[Number(el.dataset.q)];
+  if(i < 0) return;
+  const u = units[i], k = el.dataset.k;
+  if(k === 'a' || k === 'st'){
+    const v = Math.max(0, Math.min(20, parseInt(el.value,10) || 0));
+    u[k] = v;
+    if(k === 'a') u.aDmg = Math.min(u.aDmg, v); else u.sDmg = Math.min(u.sDmg, v);
+  } else u[k] = el.value;
+  save(); missionReady(); mPaint();
+});
+
+missionReady();
+quickGrid();
+mPaint();
+
+/* ---------- boot ---------- */
+store.get('as_units').then(saved=>{
+  if(Array.isArray(saved) && saved.length){
+    units = saved.map(u => Object.assign(blank(u.name || '\u2019Mech'), u,
+      { crits: Object.assign({fc:0,eng:0,mp:0,wpn:0}, u.crits || {}), flag: '' }));
+  }
+  render();
+  /* the mission screen was drawn against the pre-load roster \u2014 redraw it */
+  missionReady(); quickGrid(); mPaint();
+});
+render();
+paintSteppers();
+paint();
+</script>
+</body>
+</html>

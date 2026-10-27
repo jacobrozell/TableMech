@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "1.0.0",
+  "scenarios": [
+    {
+      "id": "ridge-line",
+      "title": "Ridge Line",
+      "subtitle": "Beginner · 2 vs 2 · ~40 min",
+      "bundle": "as-ridge-line.json",
+      "release": "1.0.0",
+      "gated": false
+    },
+    {
+      "id": "full-lances",
+      "title": "Full Lances",
+      "subtitle": "4 v 4 · ~90 min",
+      "bundle": null,
+      "release": "1.x",
+      "gated": true,
+      "comingSoonSummary": "Full lances with overheating, physical attacks, and Forced Withdrawal. Content pack lands with the 1.x gate."
+    }
+  ]
+}

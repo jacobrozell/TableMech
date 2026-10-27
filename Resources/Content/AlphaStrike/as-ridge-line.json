@@ -1,0 +1,98 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "1.0.0",
+  "scenarioId": "ridge-line",
+  "title": "Ridge Line",
+  "subtitle": "Beginner mission · 2 vs 2 · about 40 minutes",
+  "estimatedMinutes": 40,
+  "release": "1.0.0",
+  "ruleset": {
+    "overheatAllowed": false,
+    "physicalAttacksAllowed": false,
+    "forcedWithdrawal": false,
+    "maxTurns": 6,
+    "victory": {
+      "type": "destroyAllEnemiesOrStructureAfterTurn",
+      "maxTurn": 6
+    }
+  },
+  "coachNotes": [
+    "A lance is just a team. Side A has two 'Mechs; Side B has two.",
+    "No overheating and no punching in this mission — only walking (or jumping) and shooting.",
+    "If a 'Mech’s Structure hits 0, it can still shoot this turn. Take it off the table when you Clean up."
+  ],
+  "sides": {
+    "lanceA": [
+      {
+        "name": "Shadow Hawk SHD-2H",
+        "pv": 30,
+        "mv": "10\"/6\"j",
+        "tmm": 2,
+        "sz": 2,
+        "s": 2,
+        "m": 2,
+        "l": 1,
+        "ov": 0,
+        "armor": 5,
+        "structure": 5,
+        "skill": 4,
+        "abilities": "IF0*,JMPW1"
+      },
+      {
+        "name": "Commando COM-2D",
+        "pv": 17,
+        "mv": "12\"",
+        "tmm": 2,
+        "sz": 1,
+        "s": 2,
+        "m": 2,
+        "l": 0,
+        "ov": 0,
+        "armor": 2,
+        "structure": 2,
+        "skill": 4,
+        "abilities": "SRM1/1"
+      }
+    ],
+    "lanceB": [
+      {
+        "name": "Wolverine WVR-6M",
+        "pv": 32,
+        "mv": "10\"j",
+        "tmm": 2,
+        "sz": 2,
+        "s": 2,
+        "m": 2,
+        "l": 0,
+        "ov": 1,
+        "armor": 6,
+        "structure": 5,
+        "skill": 4,
+        "abilities": ""
+      },
+      {
+        "name": "Locust LCT-1V",
+        "pv": 18,
+        "mv": "16\"",
+        "tmm": 3,
+        "sz": 1,
+        "s": 1,
+        "m": 1,
+        "l": 0,
+        "ov": 0,
+        "armor": 2,
+        "structure": 2,
+        "skill": 4,
+        "abilities": ""
+      }
+    ]
+  },
+  "tableSteps": [
+    "Put both maps grassland-side up, or use any open table about 3 feet across.",
+    "Keep a tape measure in inches handy. Ignore printed hexes — just measure freely.",
+    "Woods (trees) are the only terrain that matters: moving through them costs extra inches, and shooting into or past them is a little harder.",
+    "Skip hills, water, and buildings for this first game.",
+    "Each side places its two 'Mechs within 6 inches of its own short table edge. You’ll place them after the first dice roll."
+  ],
+  "winningSummary": "Knock out both enemy 'Mechs (their Structure hits 0). If anyone is still standing after 6 turns, the side with more Structure left wins. Same Structure is a draw."
+}

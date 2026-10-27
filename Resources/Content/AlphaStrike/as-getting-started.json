@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "1.0.0",
+  "items": [
+    {
+      "id": "what",
+      "title": "This app is a helper — the game is on the table",
+      "detail": "You move plastic 'Mechs by hand. The phone tells you whose turn it is, does the shooting math, and tracks damage. It is not a video game."
+    },
+    {
+      "id": "dl_qs",
+      "title": "Optional: download the free Quick-Start PDF",
+      "detail": "You can play Ridge Line with just this app. The official Alpha Strike Quick-Start PDF is extra reading if you want it.",
+      "linkURL": "https://battletech.com/downloads/"
+    },
+    {
+      "id": "minis",
+      "title": "Get four miniatures and their cards",
+      "detail": "Ridge Line uses Shadow Hawk + Commando vs Wolverine + Locust. Each model has a card with its numbers (Move, Armor, Structure)."
+    },
+    {
+      "id": "dice",
+      "title": "Get two six-sided dice",
+      "detail": "Whenever the app asks, roll the dice on the table, then type what you rolled. (You can also let the app roll if you forgot dice.)"
+    },
+    {
+      "id": "tape",
+      "title": "Get a measuring tape that shows inches",
+      "detail": "Measure from the edge of one miniature’s base to the edge of the other — not the centers."
+    },
+    {
+      "id": "maps",
+      "title": "Clear a table about 3 feet across",
+      "detail": "Two box maps side by side is perfect. A kitchen table works too."
+    },
+    {
+      "id": "roster",
+      "title": "Then tap Play Ridge Line",
+      "detail": "The app loads both sides for you. One player is Side A, the other is Side B. Sit so you can both see the phone."
+    }
+  ]
+}

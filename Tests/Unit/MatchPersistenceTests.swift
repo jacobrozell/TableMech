@@ -1,0 +1,115 @@
+import Foundation
+import Testing
+import SwiftData
+import TableMechData
+import TableMechDomain
+
+@Suite("SwiftData match persistence")
+@MainActor
+struct MatchPersistenceTests {
+    @Test("Round-trip active session and resume fields")
+    func roundTrip() throws {
+        let container = try PersistenceController.makeContainer(inMemory: true)
+        let repo = SwiftDataMatchSessionRepository(container: container)
+
+        var session = MatchSession(
+            modeId: .alphaStrike,
+            scenarioId: .ridgeLine,
+            ruleset: .ridgeLine,
+            turn: 2,
+            phase: .combat,
+            activeSide: .lanceB,
+            initiativeWinner: .lanceA,
+            units: [
+                MatchUnitState(
+                    name: "Shadow Hawk SHD-2H",
+                    side: .lanceA,
+                    pv: 30,
+                    sz: 2,
+                    mv: "10\"",
+                    tmm: 2,
+                    s: 2,
+                    m: 2,
+                    l: 1,
+                    ov: 0,
+                    armorCap: 5,
+                    structureCap: 5,
+                    armorDamage: 2
+                )
+            ],
+            status: .active,
+            tableReady: true,
+            forcesLoaded: true,
+            diceMode: .auto
+        )
+
+        try repo.save(session)
+        let loaded = try #require(try repo.loadActive(mode: .alphaStrike))
+        #expect(loaded.id == session.id)
+        #expect(loaded.turn == 2)
+        #expect(loaded.phase == .combat)
+        #expect(loaded.activeSide == .lanceB)
+        #expect(loaded.initiativeWinner == .lanceA)
+        #expect(loaded.units.first?.armorDamage == 2)
+        #expect(loaded.tableReady == true)
+        #expect(loaded.diceMode == .auto)
+        #expect(loaded.schemaVersion == MatchSession.currentSchemaVersion)
+
+        var prior = session
+        prior.recoverySnapshots = []
+        prior.turn = 1
+        session.recoverySnapshots = [prior]
+        try repo.save(session)
+        let withUndo = try #require(try repo.loadActive(mode: .alphaStrike))
+        #expect(withUndo.recoverySnapshots.count == 1)
+        #expect(withUndo.recoverySnapshots.first?.turn == 1)
+
+        session.status = .abandoned
+        try repo.save(session)
+        #expect(try repo.loadActive(mode: .alphaStrike) == nil)
+    }
+
+    @Test("Rejects future payload schema versions")
+    func rejectsFutureSchema() throws {
+        let container = try PersistenceController.makeContainer(inMemory: true)
+        let repo = SwiftDataMatchSessionRepository(container: container)
+        var session = MatchSession(
+            schemaVersion: MatchSession.currentSchemaVersion + 1,
+            ruleset: .ridgeLine,
+            status: .active,
+            tableReady: true,
+            forcesLoaded: true
+        )
+        try repo.save(session)
+        #expect(throws: MatchPersistenceError.self) {
+            _ = try repo.loadActive(mode: .alphaStrike)
+        }
+    }
+
+    @Test("In-memory repository keeps newest active")
+    func inMemory() throws {
+        let repo = InMemoryMatchSessionRepository()
+        let older = MatchSession(
+            ruleset: .ridgeLine,
+            turn: 1,
+            phase: .initiative,
+            status: .active,
+            tableReady: true,
+            forcesLoaded: true,
+            updatedAt: Date().addingTimeInterval(-60)
+        )
+        let newer = MatchSession(
+            ruleset: .ridgeLine,
+            turn: 3,
+            phase: .movement,
+            status: .active,
+            tableReady: true,
+            forcesLoaded: true,
+            updatedAt: Date()
+        )
+        try repo.save(older)
+        try repo.save(newer)
+        let loaded = try #require(try repo.loadActive(mode: .alphaStrike))
+        #expect(loaded.turn == 3)
+    }
+}

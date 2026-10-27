@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "1.0.0",
+  "modes": [
+    {
+      "id": "alpha-strike",
+      "displayName": "Alpha Strike",
+      "shortLabel": "AS",
+      "playEngine": "alphaStrikePhased",
+      "availability": "shipped",
+      "catalogBundle": "as-quickstart-v1",
+      "capabilities": {
+        "showsGuidedMission": true,
+        "showsSATOR": true,
+        "showsArmorStructurePips": true,
+        "showsHitLocations": false,
+        "showsHeatScale": true,
+        "showsPVBalance": true,
+        "showsPhysicalAttacks": true,
+        "allowsMULPasteImport": true
+      }
+    },
+    {
+      "id": "classic-tw",
+      "displayName": "Classic",
+      "shortLabel": "Classic",
+      "playEngine": "classicTWPhased",
+      "availability": "stub",
+      "catalogBundle": null,
+      "capabilities": {
+        "showsGuidedMission": false,
+        "showsSATOR": false,
+        "showsArmorStructurePips": false,
+        "showsHitLocations": true,
+        "showsHeatScale": true,
+        "showsPVBalance": false,
+        "showsPhysicalAttacks": true,
+        "allowsMULPasteImport": false
+      }
+    }
+  ]
+}
