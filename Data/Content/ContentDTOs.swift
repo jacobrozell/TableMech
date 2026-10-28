@@ -126,6 +126,10 @@ public struct RulesTopicDTO: Codable, Sendable, Identifiable {
     public var id: String
     public var title: String
     public var screenId: String?
+    /// One-line row summary. Omitted by older packs; the rules list falls back to the first sentence.
+    public var summary: String?
+    /// `start`, `during`, or `reference`. Omitted by older packs; the rules list maps by topic id.
+    public var group: String?
     public var sections: [RulesSectionDTO]
 }
 

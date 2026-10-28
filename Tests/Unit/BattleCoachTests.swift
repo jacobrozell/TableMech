@@ -140,4 +140,58 @@ struct BattleCoachTests {
         #expect(MatchLaunch.decide(existingActive: active, replaceActive: false) == .blocked)
         #expect(MatchLaunch.decide(existingActive: active, replaceActive: true) == .replace(active.id))
     }
+
+    @Test("Last turn and a wipe tell the clean-up button to finish")
+    func endHints() {
+        let units = twoUnits()
+        let mid = MatchSession(
+            ruleset: .ridgeLine,
+            turn: 3,
+            phase: .end,
+            units: units,
+            tableReady: true,
+            deploymentAcknowledged: true
+        )
+        let midCoach = BattleCoach(session: mid)
+        #expect(midCoach.step == .end)
+        #expect(midCoach.isLastTurn == false)
+        #expect(midCoach.endWouldFinishMatch == false)
+        #expect(midCoach.primary == .resolveEnd)
+
+        var last = mid
+        last.turn = 6
+        let lastCoach = BattleCoach(session: last)
+        #expect(lastCoach.isLastTurn)
+        #expect(lastCoach.endWouldFinishMatch)
+
+        var moving = last
+        moving.phase = .movement
+        #expect(BattleCoach(session: moving).isLastTurn)
+        #expect(BattleCoach(session: moving).endWouldFinishMatch)
+
+        var wiped = mid
+        wiped.turn = 2
+        wiped.units[1].combatStatus = .destroyedPendingEnd
+        let wipedCoach = BattleCoach(session: wiped)
+        #expect(wipedCoach.isLastTurn == false)
+        #expect(wipedCoach.endWouldFinishMatch)
+
+        let open = ScenarioRuleset(
+            overheatAllowed: false,
+            physicalAttacksAllowed: false,
+            forcedWithdrawal: false,
+            maxTurns: nil,
+            victory: .destroyAllEnemies
+        )
+        let endless = MatchSession(
+            ruleset: open,
+            turn: 9,
+            phase: .end,
+            units: units,
+            tableReady: true,
+            deploymentAcknowledged: true
+        )
+        #expect(BattleCoach(session: endless).isLastTurn == false)
+        #expect(BattleCoach(session: endless).endWouldFinishMatch == false)
+    }
 }

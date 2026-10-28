@@ -4,125 +4,21 @@ import TableMechDomain
 struct UnitFocusSheet: View {
     let unit: MatchUnitState
     let session: MatchSession
-    var onResolveAttack: (() -> Void)?
-    var onRollCrit: (() -> Void)?
+    var isReadOnly: Bool = false
+    var onResolveAttack: (() -> Void)? = nil
+    var onRollCrit: (() -> Void)? = nil
 
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
         NavigationStack {
-            List {
-                Section {
-                    LabeledContent("Side", value: unit.side.displayName)
-                    LabeledContent("Status", value: unit.combatStatus.displayName)
-                    HStack {
-                        Text("Card")
-                        Spacer(minLength: 8)
-                        InfoButton(title: "Card") { _ in
-                            VStack(alignment: .leading, spacing: 8) {
-                                LabeledContent("Skill", value: "\(unit.skill)")
-                                LabeledContent("Move", value: unit.effectiveMV)
-                                LabeledContent("Harder to hit", value: "+\(unit.effectiveTMM)")
-                                LabeledContent("Damage", value: "S\(unit.effectiveDamage.s) / M\(unit.effectiveDamage.m) / L\(unit.effectiveDamage.l)")
-                                if !unit.abilities.isEmpty {
-                                    LabeledContent("Abilities", value: unit.abilities)
-                                }
-                                if unit.crits.weaponHits > 0 {
-                                    Text("Weapon hits reduce damage.")
-                                }
-                                if unit.crits.fireControlHits > 0 {
-                                    Text("Each fire control hit adds 2 to its shots.")
-                                }
-                                if unit.crits.mpHit {
-                                    Text("An MP hit halves move and harder to hit.")
-                                }
-                                Text("0 structure means wrecked.")
-                            }
-                            .font(.subheadline)
-                            .fixedSize(horizontal: false, vertical: true)
-                        }
+            Group {
+                if let action = focusAction {
+                    scroll.safeAreaInset(edge: .bottom, spacing: 0) {
+                        actionBar(action)
                     }
-                }
-
-                Section("Armor (outer hits)") {
-                    PipTrack(filled: unit.remainingArmor, capacity: unit.armorCap, name: "Armor")
-                    Text("\(unit.remainingArmor) of \(unit.armorCap) left")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-                .accessibilityIdentifier("as.unitFocus.wounds.\(unit.id.uuidString)")
-
-                Section("Structure (inner hits)") {
-                    PipTrack(filled: unit.remainingStructure, capacity: unit.structureCap, name: "Structure")
-                    Text("\(unit.remainingStructure) of \(unit.structureCap) left")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-
-                if unit.crits.engineHits > 0 || unit.crits.weaponHits > 0 || unit.crits.fireControlHits > 0 || unit.crits.mpHit {
-                    Section("Criticals so far") {
-                        if unit.crits.engineHits > 0 {
-                            Text("Engine hits: \(unit.crits.engineHits)")
-                        }
-                        if unit.crits.weaponHits > 0 {
-                            Text("Weapon hits: \(unit.crits.weaponHits)")
-                        }
-                        if unit.crits.fireControlHits > 0 {
-                            Text("Fire control: \(unit.crits.fireControlHits)")
-                        }
-                        if unit.crits.mpHit {
-                            Text("MP hit")
-                        }
-                    }
-                }
-
-                Section("This turn") {
-                    LabeledContent("Moved", value: unit.hasMovedThisTurn ? unit.movementMode.displayName : "Not yet")
-                    if let shot = unit.turnShot {
-                        LabeledContent("Shot", value: shot.rowTitle)
-                        Text(shot.rowDetail)
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    } else {
-                        LabeledContent("Shot", value: unit.hasAttackedThisTurn ? "Already shot" : "Not yet")
-                    }
-                }
-
-                Section {
-                    if unit.pendingCritical, let onRollCrit {
-                        Button {
-                            onRollCrit()
-                            dismiss()
-                        } label: {
-                            Text("Roll critical…")
-                                .frame(maxWidth: .infinity, minHeight: 44)
-                        }
-                        .buttonStyle(.borderedProminent)
-                        .controlSize(.large)
-                        .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
-                        .listRowBackground(Color.clear)
-                        .accessibilityHint("Opens the critical roll")
-                    }
-                    if session.phase == .combat,
-                       !session.units.contains(where: \.pendingCritical),
-                       unit.side == session.activeSide,
-                       unit.canAttackThisTurn,
-                       let onResolveAttack {
-                        Button {
-                            onResolveAttack()
-                            dismiss()
-                        } label: {
-                            Text("Solve a shot with this ’Mech…")
-                                .multilineTextAlignment(.center)
-                                .frame(maxWidth: .infinity, minHeight: 44)
-                        }
-                        .buttonStyle(.borderedProminent)
-                        .controlSize(.large)
-                        .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
-                        .listRowBackground(Color.clear)
-                        .accessibilityIdentifier("as.unitFocus.resolve.\(unit.id.uuidString)")
-                        .accessibilityHint("Opens the shot solver")
-                    }
+                } else {
+                    scroll
                 }
             }
             .navigationTitle(unit.name)
@@ -137,34 +33,264 @@ struct UnitFocusSheet: View {
         .presentationDragIndicator(.visible)
         .accessibilityIdentifier("as.unitFocus.sheet")
     }
-}
 
-struct PipTrack: View {
-    let filled: Int
-    let capacity: Int
-    var name: String?
-
-    var body: some View {
-        HStack(spacing: 4) {
-            ForEach(0..<max(capacity, 0), id: \.self) { index in
-                RoundedRectangle(cornerRadius: 3, style: .continuous)
-                    .fill(index < filled ? Color.primary : Color.secondary.opacity(0.25))
-                    .frame(width: 14, height: 18)
+    private var scroll: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: TMSpace.lg) {
+                header
+                StatStrip(cells: statCells)
+                track(title: "Armor", kind: .armor, remaining: unit.remainingArmor, capacity: unit.armorCap, identifier: "as.unitFocus.wounds.\(unit.id.uuidString)")
+                track(title: "Structure", kind: .structure, remaining: unit.remainingStructure, capacity: unit.structureCap, identifier: nil)
+                if hasCrits {
+                    crits
+                }
+                if !isReadOnly {
+                    thisTurn
+                }
+                if !abilitiesLine.isEmpty {
+                    VStack(alignment: .leading, spacing: TMSpace.sm) {
+                        Eyebrow("Abilities")
+                        Text(abilitiesLine)
+                            .font(TMFont.statLabel)
+                            .foregroundStyle(.secondary)
+                    }
+                }
             }
-            if capacity == 0 {
-                Text("—")
+            .padding(TMSpace.lg)
+        }
+        .scrollEdgeEffectStyle(.soft, for: .bottom)
+    }
+
+    private var header: some View {
+        VStack(alignment: .leading, spacing: TMSpace.sm) {
+            HStack(spacing: TMSpace.sm) {
+                SideBadge(side: unit.side)
+                Text("\(unit.side.displayName) · Size \(unit.sz)")
+                    .font(TMFont.detail)
                     .foregroundStyle(.secondary)
             }
+            if let headerChip {
+                StatusChip(kind: headerChip)
+            }
         }
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel(spokenCount)
     }
 
-    private var spokenCount: String {
-        if let name, !name.isEmpty {
-            "\(name), \(filled) of \(capacity)"
-        } else {
-            "\(filled) of \(capacity)"
+    private func track(
+        title: String,
+        kind: PipTrack.Kind,
+        remaining: Int,
+        capacity: Int,
+        identifier: String?
+    ) -> some View {
+        VStack(alignment: .leading, spacing: TMSpace.xs) {
+            Eyebrow(title)
+            PipTrack(
+                remaining: remaining,
+                capacity: capacity,
+                kind: kind,
+                size: .large,
+                accessibilityIdentifier: identifier
+            )
         }
     }
+
+    private var crits: some View {
+        VStack(alignment: .leading, spacing: TMSpace.sm) {
+            Eyebrow("Criticals")
+            FlowLayout(spacing: TMSpace.sm) {
+                if unit.crits.engineHits > 0 {
+                    StatusChip(kind: .recordedCrit(title: "Engine ×\(unit.crits.engineHits)", systemImage: "engine.combustion.fill"))
+                }
+                if unit.crits.weaponHits > 0 {
+                    StatusChip(kind: .recordedCrit(title: "Weapon ×\(unit.crits.weaponHits)", systemImage: "target"))
+                }
+                if unit.crits.fireControlHits > 0 {
+                    StatusChip(kind: .recordedCrit(title: "Fire control ×\(unit.crits.fireControlHits)", systemImage: "scope"))
+                }
+                if unit.crits.mpHit {
+                    StatusChip(kind: .recordedCrit(title: "Motive", systemImage: "figure.walk"))
+                }
+            }
+            if !critNotes.isEmpty {
+                Text(critNotes)
+                    .font(TMFont.detail)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+    }
+
+    private var thisTurn: some View {
+        VStack(alignment: .leading, spacing: TMSpace.md) {
+            Eyebrow("This turn")
+            VStack(alignment: .leading, spacing: TMSpace.xs) {
+                Text("Moved")
+                    .font(TMFont.statLabel)
+                    .foregroundStyle(.secondary)
+                if unit.hasMovedThisTurn, unit.movementMode != .unset {
+                    StatusChip(kind: .moved(unit.movementMode))
+                } else {
+                    Text("Not yet")
+                        .font(TMFont.body)
+                }
+            }
+            VStack(alignment: .leading, spacing: TMSpace.xs) {
+                Text("Shot")
+                    .font(TMFont.statLabel)
+                    .foregroundStyle(.secondary)
+                if let shot = unit.turnShot {
+                    StatusChip(kind: shot.hit
+                        ? .hit(target: shot.targetName, damage: shot.damage)
+                        : .missed(target: shot.targetName))
+                    Text(shot.rowDetail)
+                        .font(TMFont.detail)
+                        .foregroundStyle(.secondary)
+                } else {
+                    Text(unit.hasAttackedThisTurn ? "Already shot" : "Not yet")
+                        .font(TMFont.body)
+                }
+            }
+        }
+    }
+
+    private func actionBar(_ action: FocusAction) -> some View {
+        GlassEffectContainer(spacing: TMSpace.md) {
+            PrimaryActionButton(
+                title: action.title,
+                placement: .dock,
+                tint: TMColor.side(unit.side),
+                accessibilityIdentifier: action.identifier,
+                accessibilityHint: action.hint,
+                action: {
+                    action.run()
+                    dismiss()
+                }
+            )
+        }
+        .padding(.horizontal, TMSpace.lg)
+        .padding(.vertical, TMSpace.sm)
+    }
+
+    private var headerChip: StatusChip.Kind? {
+        if unit.criticalsOwed > 0 { return .critOwed(unit.criticalsOwed) }
+        if unit.combatStatus == .destroyedPendingEnd { return .wrecked }
+        if unit.isImmobile { return .immobile }
+        if unit.movementMode == .sprint { return .sprinted }
+        return nil
+    }
+
+    private var hasCrits: Bool {
+        unit.crits.engineHits > 0
+            || unit.crits.weaponHits > 0
+            || unit.crits.fireControlHits > 0
+            || unit.crits.mpHit
+    }
+
+    private var critNotes: String {
+        var lines: [String] = []
+        if unit.crits.weaponHits > 0 {
+            lines.append("Weapon hits reduce damage.")
+        }
+        if unit.crits.fireControlHits > 0 {
+            lines.append("Fire control adds 2 to its shots.")
+        }
+        if unit.crits.mpHit {
+            lines.append("A motive hit halves move and harder to hit.")
+        }
+        if unit.crits.engineHits > 0 {
+            lines.append("A second engine hit wrecks it.")
+        }
+        return lines.joined(separator: " ")
+    }
+
+    private var abilitiesLine: String {
+        unit.abilities
+            .split(separator: ",")
+            .map { $0.trimmingCharacters(in: .whitespaces) }
+            .filter { !$0.isEmpty }
+            .joined(separator: " · ")
+    }
+
+    private var statCells: [StatCell] {
+        let damage = unit.effectiveDamage
+        let weaponHits = unit.crits.weaponHits
+        return [
+            StatCell(
+                id: "mv",
+                label: "MV",
+                value: marked(unit.effectiveMV, changed: unit.effectiveMV != unit.mv),
+                helpTitle: "Move",
+                helpBody: unit.crits.mpHit
+                    ? "Halved by a motive hit."
+                    : "Inches this ’Mech can walk or jump."
+            ),
+            StatCell(
+                id: "tmm",
+                label: "TMM",
+                value: marked("\(unit.effectiveTMM)", changed: unit.effectiveTMM != unit.tmm),
+                helpTitle: "Harder to hit",
+                helpBody: unit.crits.mpHit
+                    ? "Halved by a motive hit."
+                    : "Added to shots against this ’Mech."
+            ),
+            StatCell(id: "skl", label: "SKL", value: "\(unit.skill)"),
+            StatCell(
+                id: "dmg",
+                label: "DMG",
+                value: marked("\(damage.s)·\(damage.m)·\(damage.l)", changed: weaponHits > 0),
+                helpTitle: "Damage",
+                helpBody: weaponHits > 0
+                    ? "−\(weaponHits) from \(weaponHits == 1 ? "a weapon hit" : "weapon hits")."
+                    : "Short, medium, and long range damage."
+            )
+        ]
+    }
+
+    private func marked(_ value: String, changed: Bool) -> String {
+        changed ? "\(value) ↓" : value
+    }
+
+    private var focusAction: FocusAction? {
+        if isReadOnly { return nil }
+        if unit.pendingCritical, let onRollCrit {
+            return FocusAction(
+                title: "Roll critical",
+                hint: "Opens the critical roll",
+                identifier: nil,
+                run: onRollCrit
+            )
+        }
+        if session.phase == .combat,
+           !session.units.contains(where: \.pendingCritical),
+           unit.side == session.activeSide,
+           unit.canAttackThisTurn,
+           let onResolveAttack {
+            return FocusAction(
+                title: "Shoot with \(unit.name)",
+                hint: "Opens the shot solver",
+                identifier: "as.unitFocus.resolve.\(unit.id.uuidString)",
+                run: onResolveAttack
+            )
+        }
+        return nil
+    }
 }
+
+private struct FocusAction {
+    var title: String
+    var hint: String
+    var identifier: String?
+    var run: () -> Void
+}
+
+#if DEBUG
+#Preview("Unit focus") {
+    UnitFocusSheet(
+        unit: PreviewFixtures.shadowHawk,
+        session: PreviewFixtures.session(),
+        isReadOnly: false,
+        onResolveAttack: {},
+        onRollCrit: {}
+    )
+}
+#endif

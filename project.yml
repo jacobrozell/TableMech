@@ -16,7 +16,7 @@ settings:
     SWIFT_VERSION: "6.0"
     DEVELOPMENT_TEAM: "7JT2JB89AV"
     CODE_SIGN_STYLE: Automatic
-    MARKETING_VERSION: "1.0.0"
+    MARKETING_VERSION: "0.2.0"
     CURRENT_PROJECT_VERSION: "1"
     SWIFT_STRICT_CONCURRENCY: complete
 
@@ -30,6 +30,8 @@ targets:
     platform: iOS
     sources:
       - path: App
+        excludes:
+          - Info.plist
       - path: Features
         excludes:
           - "**/README.md"
@@ -54,11 +56,13 @@ targets:
         INFOPLIST_KEY_CFBundleDisplayName: TableMech
         INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.games
         INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        INFOPLIST_KEY_UILaunchScreen_BackgroundColor: LaunchBackground
         INFOPLIST_KEY_ITSAppUsesNonExemptEncryption: NO
         INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone: "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight"
         INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad: "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight"
         TARGETED_DEVICE_FAMILY: "1,2"
         GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_FILE: App/Info.plist
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
         ENABLE_USER_SCRIPT_SANDBOXING: NO

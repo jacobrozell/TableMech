@@ -7,18 +7,20 @@
       "id": "how-to-play",
       "title": "If you’ve never played a tabletop wargame",
       "screenId": "rules.as.howto",
+      "summary": "What you do at the table, and what the phone does.",
+      "group": "start",
       "sections": [
         {
           "heading": "What you actually do",
-          "body": "Two people sit at a table with plastic robots ('Mechs). You take turns moving them with a tape measure and rolling two six-sided dice to shoot. This phone does not move the models — you do. It just tells you whose turn it is and keeps score."
+          "body": "Two people sit at a table with plastic robots (’Mechs). You take turns moving them with a tape measure and rolling two six-sided dice to shoot. This phone does not move the models — you do. It just tells you whose turn it is and keeps score."
         },
         {
           "heading": "A lance is a team",
-          "body": "Side A and Side B each control two 'Mechs in Ridge Line. That’s a small “lance.” Sit so you can both see the same phone."
+          "body": "Side A and Side B each control two ’Mechs in Ridge Line. That’s a small “lance.” Sit so you can both see the same phone."
         },
         {
           "heading": "Armor then Structure",
-          "body": "Armor is the outer layer of hit points. Structure is the inner layer. Damage chips armor first. When Structure hits 0, that 'Mech is wrecked (it may still shoot until you Clean up)."
+          "body": "Armor is the outer layer of hit points. Structure is the inner layer. Damage chips armor first. When Structure hits 0, that ’Mech is wrecked (it may still shoot until you Clean up)."
         },
         {
           "heading": "You need to roll this number or higher",
@@ -30,6 +32,8 @@
       "id": "turn",
       "title": "One turn, four steps",
       "screenId": "rules.as.turn",
+      "summary": "Roll, move, shoot, then clean up.",
+      "group": "start",
       "sections": [
         {
           "heading": "1. Roll dice (initiative)",
@@ -37,15 +41,15 @@
         },
         {
           "heading": "2. Move",
-          "body": "The side that lost the dice roll moves a miniature first. Then the other side. Keep alternating until every 'Mech has moved. Measure in inches from where the base starts to where it ends."
+          "body": "The side that lost the dice roll moves a miniature first. Then the other side. Keep alternating until every ’Mech has moved. Measure in inches from where the base starts to where it ends."
         },
         {
           "heading": "3. Shoot",
-          "body": "The side that lost the dice roll shoots with all of its 'Mechs first (one shot each), then the winner. Measure range base-edge to base-edge. Damage is applied right away, but wrecked 'Mechs stay until Clean up — they can still shoot this turn."
+          "body": "The side that lost the dice roll shoots with all of its ’Mechs first (one shot each), then the winner. Measure range base-edge to base-edge. Damage is applied right away, but wrecked ’Mechs stay until Clean up — they can still shoot this turn."
         },
         {
           "heading": "4. Clean up",
-          "body": "Take wrecked 'Mechs off the table. The app checks whether someone won. If not, start a new turn at Roll dice. Ridge Line lasts at most 6 turns."
+          "body": "Take wrecked ’Mechs off the table. The app checks whether someone won. If not, start a new turn at Roll dice. Ridge Line lasts at most 6 turns."
         }
       ]
     },
@@ -53,6 +57,8 @@
       "id": "movement",
       "title": "How far can it go?",
       "screenId": "rules.as.movement",
+      "summary": "Walk, stand still, sprint, or jump.",
+      "group": "during",
       "sections": [
         {
           "heading": "Walk, stand, sprint, or jump",
@@ -64,7 +70,7 @@
         },
         {
           "heading": "Don’t stack",
-          "body": "You can walk through your own 'Mechs but not enemies. Two 'Mechs cannot end on top of each other — the whole base needs space."
+          "body": "You can walk through your own ’Mechs but not enemies. Two ’Mechs cannot end on top of each other — the whole base needs space."
         }
       ]
     },
@@ -72,18 +78,20 @@
       "id": "combat",
       "title": "Can I even shoot?",
       "screenId": "rules.as.combat",
+      "summary": "See it, face it, and stay in range.",
+      "group": "during",
       "sections": [
         {
           "heading": "See it, face it, reach it",
-          "body": "You need a mostly-clear view of the target, it should be in front of your 'Mech (not mostly behind it), and it must be within 42 inches. Measure base edge to base edge."
+          "body": "You need a mostly-clear view of the target, it should be in front of your ’Mech (not mostly behind it), and it must be within 42 inches. Measure base edge to base edge."
         },
         {
           "heading": "Touching bases",
-          "body": "If two 'Mechs are touching, measure the gap as short range. This mission has no punching. You still shoot if you can see them and they are in front."
+          "body": "If two ’Mechs are touching, measure the gap as short range. This mission has no punching. You still shoot if you can see them and they are in front."
         },
         {
-          "heading": "One shot per 'Mech per turn",
-          "body": "Each 'Mech fires once, then it’s done until next turn."
+          "heading": "One shot per ’Mech per turn",
+          "body": "Each ’Mech fires once, then it’s done until next turn."
         }
       ]
     },
@@ -91,6 +99,8 @@
       "id": "sator",
       "title": "How the to-hit number is built",
       "screenId": "rules.as.satorRef",
+      "summary": "How the number you need is built.",
+      "group": "during",
       "sections": [
         {
           "heading": "You don’t have to memorize this",
@@ -110,6 +120,8 @@
       "id": "damage",
       "title": "Hits, wrecks, and criticals",
       "screenId": "rules.as.damage",
+      "summary": "Armor, structure, wrecks, and criticals.",
+      "group": "during",
       "sections": [
         {
           "heading": "Where damage goes",
@@ -121,7 +133,7 @@
         },
         {
           "heading": "Criticals in one sentence",
-          "body": "An extra roll that can jam weapons, hurt the engine, or destroy the 'Mech. Follow the app; you don’t need the table memorized."
+          "body": "An extra roll that can jam weapons, hurt the engine, or destroy the ’Mech. Follow the app; you don’t need the table memorized."
         }
       ]
     },
@@ -129,6 +141,8 @@
       "id": "tables",
       "title": "Quick numbers (optional)",
       "screenId": "rules.as.tables",
+      "summary": "Move, target, and cover modifiers.",
+      "group": "reference",
       "sections": [
         {
           "heading": "If you moved…",
@@ -148,6 +162,8 @@
       "id": "abbreviations",
       "title": "Weird letters on the card",
       "screenId": "rules.as.abbreviations",
+      "summary": "The letters on a unit card.",
+      "group": "reference",
       "sections": [
         {
           "heading": "You can ignore most of these in Ridge Line",
@@ -159,6 +175,8 @@
       "id": "odds",
       "title": "Dice odds (optional)",
       "screenId": "rules.as.odds",
+      "summary": "The chance two dice hit a target number.",
+      "group": "reference",
       "sections": [
         {
           "heading": "Chance to roll this number or higher on two dice",

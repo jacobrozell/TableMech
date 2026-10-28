@@ -14,6 +14,7 @@ struct InfoButton<Content: View>: View {
             isPresented = true
         } label: {
             Image(systemName: "info.circle")
+                .symbolRenderingMode(.hierarchical)
                 .font(.body)
                 .frame(minWidth: 44, minHeight: 44)
                 .contentShape(Rectangle())
@@ -21,7 +22,7 @@ struct InfoButton<Content: View>: View {
         .buttonStyle(.borderless)
         .foregroundStyle(.secondary)
         .accessibilityLabel("About \(title)")
-        .modifier(OptionalAccessibilityID(identifier: accessibilityIdentifier))
+        .accessibilityID(accessibilityIdentifier)
         .popover(isPresented: $isPresented) {
             content { isPresented = false }
                 .padding(20)
@@ -32,16 +33,42 @@ struct InfoButton<Content: View>: View {
             if !shown { onDismiss() }
         }
     }
+
+    init(
+        title: String,
+        accessibilityIdentifier: String? = nil,
+        onDismiss: @escaping () -> Void = {},
+        @ViewBuilder content: @escaping (_ dismiss: @escaping () -> Void) -> Content
+    ) {
+        self.title = title
+        self.accessibilityIdentifier = accessibilityIdentifier
+        self.onDismiss = onDismiss
+        self.content = content
+    }
 }
 
-private struct OptionalAccessibilityID: ViewModifier {
-    var identifier: String?
-
-    func body(content: Content) -> some View {
-        if let identifier {
-            content.accessibilityIdentifier(identifier)
-        } else {
-            content
+extension InfoButton where Content == InfoContent {
+    init(
+        title: String,
+        message: String,
+        links: [InfoLink] = [],
+        accessibilityIdentifier: String? = nil,
+        onDismiss: @escaping () -> Void = {}
+    ) {
+        self.init(
+            title: title,
+            accessibilityIdentifier: accessibilityIdentifier,
+            onDismiss: onDismiss
+        ) { _ in
+            InfoContent(title: title, message: message, links: links)
         }
     }
 }
+
+#if DEBUG
+#Preview("Info") {
+    PreviewPair {
+        InfoButton(title: "Move", message: "Inches this ’Mech can walk.")
+    }
+}
+#endif

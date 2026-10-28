@@ -36,6 +36,11 @@ public struct BattleCoach: Equatable, Sendable {
     public var otherMechStillToMove: Bool
     public var movementComplete: Bool
     public var finishCombatNeedsConfirm: Bool
+    /// Turn number has reached the ruleset cap. Ridge Line’s cap is 6.
+    public var isLastTurn: Bool
+    /// `VictoryEvaluator.evaluateAfterEnd` would complete the match from this board.
+    /// A wipe counts on any turn. Ridge Line’s turn cap counts on the last turn even before End.
+    public var endWouldFinishMatch: Bool
 
     public init(session: MatchSession) {
         let owed = session.units.filter(\.pendingCritical)
@@ -69,6 +74,13 @@ public struct BattleCoach: Equatable, Sendable {
         finishCombatNeedsConfirm = step == .combat
             && pendingCritical == nil
             && session.units.contains { $0.side == session.activeSide && $0.canAttackThisTurn }
+
+        if let maxTurns = session.ruleset.maxTurns {
+            isLastTurn = session.turn >= maxTurns
+        } else {
+            isLastTurn = false
+        }
+        endWouldFinishMatch = VictoryEvaluator.evaluateAfterEnd(session: session) != nil
 
         if let pendingCritical {
             primary = .rollCritical(count: pendingCritical.count)
