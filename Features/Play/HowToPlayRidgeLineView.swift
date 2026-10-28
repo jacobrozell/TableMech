@@ -5,7 +5,7 @@ struct HowToPlayRidgeLineView: View {
     var body: some View {
         List {
             Section {
-                Text("Ridge Line is the beginner game: two players, four 'Mechs, about 40 minutes. The miniatures stay on the table. This phone tells you what to do next. Here is the whole path, from the first tap to a winner.")
+                Text("Two players, four ’Mechs, about 40 minutes. The phone tells you the next tap.")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
             }
@@ -30,10 +30,8 @@ struct HowToPlayRidgeLineView: View {
             }
 
             Section("1. Start from Play") {
-                Text("Tap Play Ridge Line. The app loads both teams.")
-                Text("Side A is Shadow Hawk and Commando. Side B is Wolverine and Locust. One player takes each side. Sit so you can both see the phone.")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
+                paragraph("Tap Play Ridge Line. The app loads both teams.")
+                paragraph("Side A is Shadow Hawk and Commando. Side B is Wolverine and Locust. One player takes each side.")
                 Text("If a game is already saved, the app asks before it replaces it.")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
@@ -41,13 +39,13 @@ struct HowToPlayRidgeLineView: View {
 
             Section("2. Set the table") {
                 Text("The next screen is a short checklist: the maps, the tape, who sits where, and how you win.")
-                Text("When the models and dice are out, tap “The table is set — start the first turn.”")
+                Text("When the models and dice are out, tap Start.")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
             }
 
             Section("3. Each turn has four steps") {
-                Text("The screen always says what to do now. The button at the bottom is the next action. When it says to pass the phone, hand it over before you tap.")
+                Text("The button at the bottom is the next action. Pass the phone when it says to.")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                 flowRow(
@@ -69,15 +67,15 @@ struct HowToPlayRidgeLineView: View {
             }
 
             Section("4. How you win") {
-                Text("Knock out both enemy 'Mechs. If any are still standing after turn 6, the side with more Structure left wins. The same Structure is a draw.")
-                Text("Then you can rematch with fresh damage, or go back to Play.")
+                paragraph("Knock out both enemy ’Mechs. After turn 6, the side with more structure left wins. Equal structure is a draw.")
+                Text("Then you can rematch, or go back to Play.")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
             }
 
             Section("5. Leave and come back") {
-                Text("Leave saves the game. Play shows Resume, with the turn and the step you were on.")
-                Text("Quit and discard, in the ••• menu during a game, throws that progress away.")
+                paragraph("Leave saves the game. Play shows Continue, with the turn and the step.")
+                Text("Quit and discard, in the ••• menu, throws that game away.")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
             }
@@ -93,8 +91,17 @@ struct HowToPlayRidgeLineView: View {
             Text(detail)
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
         }
-        .padding(.vertical, 2)
+        .frame(maxWidth: .infinity, alignment: .leading)
         .accessibilityElement(children: .combine)
+        .padding(.vertical, 2)
     }
+
+    private func paragraph(_ text: String) -> some View {
+        Text(text)
+            .font(.subheadline)
+            .fixedSize(horizontal: false, vertical: true)
+    }
+
 }

@@ -6,6 +6,7 @@ public protocol MatchSessionRepository: AnyObject {
     func loadActive(mode: GameModeId) throws -> MatchSession?
     func save(_ session: MatchSession) throws
     func delete(id: UUID) throws
+    func deleteAll() throws
 }
 
 @MainActor
@@ -27,5 +28,9 @@ public final class InMemoryMatchSessionRepository: MatchSessionRepository {
 
     public func delete(id: UUID) throws {
         sessions[id] = nil
+    }
+
+    public func deleteAll() throws {
+        sessions.removeAll()
     }
 }

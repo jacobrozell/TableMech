@@ -86,6 +86,14 @@ public final class SwiftDataMatchSessionRepository: MatchSessionRepository {
         try context.save()
     }
 
+    public func deleteAll() throws {
+        let descriptor = FetchDescriptor<SDMatchSession>()
+        for row in try context.fetch(descriptor) {
+            context.delete(row)
+        }
+        try context.save()
+    }
+
     private func decodeSession(from row: SDMatchSession) throws -> MatchSession {
         let session: MatchSession
         do {

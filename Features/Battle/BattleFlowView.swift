@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 import TableMechDomain
 
 struct BattleFlowView: View {
@@ -6,7 +7,6 @@ struct BattleFlowView: View {
     @Bindable var store: MatchStore
     @Environment(\.dismiss) private var dismiss
 
-    @State private var showInitiative = false
     @State private var showSATOR = false
     @State private var showCrit: MatchUnitState?
     @State private var focusUnit: MatchUnitState?
@@ -19,8 +19,6 @@ struct BattleFlowView: View {
     @State private var showAbandonConfirm = false
     @State private var showSkipConfirm = false
     @State private var showEventLog = false
-    @State private var deployAcknowledged = false
-    @State private var handoffSide: SideId?
     @State private var showBackConfirm = false
     @State private var showDoneShootingConfirm = false
     @State private var focusFollowUp: FocusFollowUp?
@@ -35,6 +33,8 @@ struct BattleFlowView: View {
         }
         .navigationTitle("Ridge Line")
         .navigationBarTitleDisplayMode(.inline)
+        .onAppear { UIApplication.shared.isIdleTimerDisabled = true }
+        .onDisappear { UIApplication.shared.isIdleTimerDisabled = false }
         .toolbar {
             ToolbarItem(placement: .cancellationAction) {
                 Button("Leave") {
@@ -49,9 +49,28 @@ struct BattleFlowView: View {
             }
             ToolbarItem(placement: .topBarTrailing) {
                 Menu {
+                    if store.canBack {
+                        Button("Back", systemImage: "chevron.backward") {
+                            attemptBack()
+                        }
+                        .accessibilityIdentifier("as.battle.back")
+                    }
                     if store.canUndo {
                         Button("Undo last change", systemImage: "arrow.uturn.backward") {
                             store.undo()
+                        }
+                    }
+                    if let session = store.session {
+                        let coach = BattleCoach(session: session)
+                        if coach.canSwapSides {
+                            Button("Swap sides", systemImage: "arrow.left.arrow.right") {
+                                store.swapSides()
+                            }
+                        }
+                        if coach.step == .movement, !coach.movementComplete {
+                            Button("Skip remaining moves", systemImage: "forward.end") {
+                                showSkipConfirm = true
+                            }
                         }
                     }
                     Button("What just happened", systemImage: "list.bullet") {
@@ -81,7 +100,6 @@ struct BattleFlowView: View {
         ) {
             Button("Go back", role: .destructive) {
                 store.back()
-                handoffSide = nil
             }
             Button("Stay here", role: .cancel) {}
         } message: {
@@ -112,44 +130,30 @@ struct BattleFlowView: View {
             Text("Unrecorded moves will count as Walk when they shoot. Prefer recording Stand still / Walk / Sprint / Jump for each 'Mech.")
         }
         .onAppear {
-            if store.session == nil {
-                store.startRidgeLine(from: dependencies.content)
-            } else if store.session?.units.contains(where: \.hasMovedThisTurn) == true {
-                deployAcknowledged = true
+            guard store.session == nil else { return }
+            do {
+                if try store.resumeActive() { return }
+            } catch {
+                store.lastError = error.localizedDescription
+                return
             }
+            store.startRidgeLine(from: dependencies.content, replaceActive: false)
         }
         .onChange(of: store.session?.status) { _, status in
             if status == .abandoned || store.session == nil {
                 dismiss()
             }
         }
-        .onChange(of: store.session?.phase) { old, new in
-            if old == .initiative, new == .movement {
-                deployAcknowledged = false
+        .onChange(of: store.session?.phase) { _, new in
+            if new == .initiative {
+                a1 = nil
+                a2 = nil
+                b1 = nil
+                b2 = nil
             }
-            if new == .initiative || new == .end {
-                handoffSide = nil
-            }
-            if new == .movement, store.session?.units.contains(where: \.hasMovedThisTurn) != true {
-                deployAcknowledged = false
-            }
-        }
-        .onChange(of: store.session?.activeSide) { old, new in
-            guard let old, let new, old != new else { return }
-            guard let phase = store.session?.phase, phase == .movement || phase == .combat else {
-                handoffSide = nil
-                return
-            }
-            if phase == .movement, store.session?.turn == 1, !deployAcknowledged {
-                return
-            }
-            handoffSide = new
         }
         .sheet(isPresented: $showEventLog) {
             eventLogSheet
-        }
-        .sheet(isPresented: $showInitiative) {
-            initiativeSheet
         }
         .sheet(isPresented: $showSATOR) {
             if let session = store.session {
@@ -196,12 +200,12 @@ struct BattleFlowView: View {
 
     @ViewBuilder
     private func content(_ session: MatchSession) -> some View {
-        if session.status == .completed {
+        let coach = BattleCoach(session: session)
+        if coach.step == .victory {
             VictoryView(
                 session: session,
                 onRematch: {
                     store.rematch(from: dependencies.content)
-                    deployAcknowledged = false
                 },
                 onDone: {
                     store.dismissCompleted()
@@ -209,76 +213,87 @@ struct BattleFlowView: View {
                 },
                 onBack: { attemptBack() }
             )
-        } else if !session.tableReady {
-            tableReady(session)
+        } else if coach.step == .tableSetup {
+            tableReady(session, coach: coach)
         } else {
-            battleTable(session)
+            battleTable(session, coach: coach)
         }
     }
 
-    private func tableReady(_ session: MatchSession) -> some View {
+    private func tableReady(_ session: MatchSession, coach: BattleCoach) -> some View {
         List {
-            Section {
-                Text("The miniatures stay on the table. This phone only tracks turns, dice math, and damage. Sit so both players can see the screen.")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-            }
             Section("Set the table") {
                 ForEach(Array(tableSteps(for: session).enumerated()), id: \.offset) { index, step in
                     Text("\(index + 1). \(step)")
                 }
             }
-            Section("Who’s who") {
-                Text("A “lance” is just a team of 'Mechs. One player takes Side A, the other takes Side B.")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                ForEach(session.units) { unit in
-                    LabeledContent(unit.side.displayName, value: unit.name)
+            Section {
+                ForEach(SideId.allCases, id: \.self) { side in
+                    let sideUnits = session.units.filter { $0.side == side }
+                    if !sideUnits.isEmpty {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(side.displayName)
+                                .font(.subheadline.weight(.semibold))
+                            ForEach(sideUnits) { unit in
+                                Text(unit.name)
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .accessibilityElement(children: .combine)
+                    }
                 }
-            }
-            if let notes = coachNotes, !notes.isEmpty {
-                Section("For this first game") {
-                    ForEach(Array(notes.enumerated()), id: \.offset) { _, note in
-                        Text(note)
+            } header: {
+                HStack {
+                    Text("Who’s who")
+                    Spacer(minLength: 8)
+                    if coach.canSwapSides {
+                        Button {
+                            store.swapSides()
+                        } label: {
+                            Label("Swap", systemImage: "arrow.left.arrow.right")
+                                .labelStyle(.titleAndIcon)
+                                .font(.subheadline)
+                                .frame(minHeight: 44)
+                        }
+                        .buttonStyle(.borderless)
+                        .textCase(nil)
+                        .accessibilityLabel("Swap sides")
+                        .accessibilityHint("Trades which player has which ’Mechs")
+                        .accessibilityIdentifier("as.battle.swapSides")
                     }
                 }
             }
             if let winning = winningSummary {
-                Section("How you win") {
-                    Text(winning)
-                }
-            }
-            Section("Dice") {
-                Picker("Dice", selection: Binding(
-                    get: { session.diceMode },
-                    set: { store.setDiceMode($0) }
-                )) {
-                    Text("Manual").tag(DiceMode.manual)
-                    Text("Auto").tag(DiceMode.auto)
-                }
-                .pickerStyle(.segmented)
-                .accessibilityIdentifier("as.ridge.diceMode")
-                Text(diceModeDetail(session.diceMode))
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-            }
-            Section {
-                Button("We’re sitting on the wrong sides") {
-                    store.swapSides()
+                Section {
+                    HStack(alignment: .center, spacing: 0) {
+                        Text("How you win")
+                            .font(.headline)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        InfoButton(title: "How you win") { _ in
+                            Text(winning)
+                                .font(.subheadline)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                    }
+                    .buttonStyle(.borderless)
                 }
             }
             Section {
-                Button("The table is set — start the first turn") {
+                Button {
                     store.markTableReady()
+                } label: {
+                    Text("Start")
+                        .frame(maxWidth: .infinity, minHeight: 44)
                 }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.large)
+                .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
+                .listRowBackground(Color.clear)
                 .accessibilityIdentifier("as.ridge.tableReady")
             }
         }
         .accessibilityIdentifier("as.ridge.tablePrep")
-    }
-
-    private var coachNotes: [String]? {
-        try? dependencies.content.ridgeLineScenario().coachNotes
     }
 
     private var winningSummary: String? {
@@ -303,58 +318,70 @@ struct BattleFlowView: View {
         ]
     }
 
-    private func battleTable(_ session: MatchSession) -> some View {
+    private func battleTable(_ session: MatchSession, coach: BattleCoach) -> some View {
         List {
-            if store.canBack || store.canUndo {
-                Section {
-                    if store.canBack {
-                        Button("Back") { attemptBack() }
-                            .accessibilityIdentifier("as.battle.back")
-                    }
-                    if store.canUndo {
-                        Button("Undo last change", systemImage: "arrow.uturn.backward") {
-                            store.undo()
-                        }
-                    }
-                }
-            }
-
             Section {
-                Text(stepHeadline(session))
+                Text(stepHeadline(session, coach: coach))
                     .font(.headline)
                     .accessibilityIdentifier("as.battle.table")
-                if session.phase == .movement || session.phase == .combat {
-                    Text(session.activeSide.displayName)
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                        .accessibilityIdentifier("as.battle.activeSide")
-                        .accessibilityValue(session.activeSide == .lanceA ? "lanceA" : "lanceB")
-                }
-                stepBody(session)
+                    .background {
+                        if coach.step == .movement || coach.step == .combat || coach.step == .placeMiniatures {
+                            Color.clear
+                                .accessibilityElement()
+                                .accessibilityIdentifier("as.battle.activeSide")
+                                .accessibilityLabel("Active side, \(session.activeSide.displayName)")
+                                .accessibilityValue(session.activeSide == .lanceA ? "lanceA" : "lanceB")
+                        }
+                    }
+                stepBody(session, coach: coach)
             }
         }
+        .accessibilityIdentifier("as.battle.screen")
         .safeAreaInset(edge: .bottom, spacing: 0) {
-            Button(primaryTitle(session)) { primaryAction(session) }
-                .buttonStyle(.borderedProminent)
-                .frame(maxWidth: .infinity)
+            if coach.primary != nil || showsDoneShooting(coach) {
+                HStack(spacing: 12) {
+                    if showsDoneShooting(coach) {
+                        Button {
+                            finishShooting(coach)
+                        } label: {
+                            Text("Done shooting")
+                                .frame(maxWidth: .infinity, minHeight: 44)
+                        }
+                        .buttonStyle(.bordered)
+                        .controlSize(.large)
+                        .accessibilityLabel("\(session.activeSide.displayName) is done shooting")
+                        .accessibilityIdentifier("as.battle.doneShooting")
+                    }
+                    if let primary = coach.primary {
+                        Button {
+                            primaryAction(session, coach: coach)
+                        } label: {
+                            Text(primaryTitle(primary))
+                                .frame(maxWidth: .infinity, minHeight: 44)
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .controlSize(.large)
+                        .disabled(primary == .useInitiativeRolls && !initiativeReady)
+                        .accessibilityIdentifier("as.battle.primary")
+                        .accessibilityHint(primaryHint(primary))
+                    }
+                }
                 .padding()
                 .background(.bar)
-                .accessibilityIdentifier("as.battle.primary")
+            }
         }
     }
 
-    private func stepHeadline(_ session: MatchSession) -> String {
-        if handoffSide != nil { return "Pass the phone" }
-        if pendingCrits(session).first != nil { return "Critical hit" }
-        if session.phase == .movement, session.turn == 1, !deployAcknowledged {
-            return "Place the miniatures"
-        }
+    private func stepHeadline(_ session: MatchSession, coach: BattleCoach) -> String {
+        if coach.pendingCritical != nil { return "Critical hit" }
         let turn = "Turn \(turnLabel(session))"
-        switch session.phase {
+        switch coach.step {
+        case .placeMiniatures:
+            return "Place the miniatures"
         case .initiative:
             return "\(turn) · Roll dice"
         case .movement:
-            if otherMechStillToMove(session) {
+            if coach.otherMechStillToMove {
                 return "\(turn) · \(session.activeSide.displayName)’s other ’Mech"
             }
             return "\(turn) · \(session.activeSide.displayName) moves"
@@ -362,115 +389,83 @@ struct BattleFlowView: View {
             return "\(turn) · \(session.activeSide.displayName) shoots"
         case .end:
             return "\(turn) · Clean up"
+        case .tableSetup, .victory:
+            return turn
         }
     }
 
     @ViewBuilder
-    private func stepBody(_ session: MatchSession) -> some View {
-        if let handoffSide {
-            Text("Hand the phone to \(handoffSide.displayName). Wait until they have it, then tap the button at the bottom.")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-                .accessibilityIdentifier("as.battle.handoff")
-        } else if let owed = pendingCrits(session).first {
+    private func stepBody(_ session: MatchSession, coach: BattleCoach) -> some View {
+        if let owed = coach.pendingCritical {
             Text(session.diceMode == .auto
-                ? "\(owed.name) took a serious hit. The app rolls before anyone else shoots."
-                : "\(owed.name) took a serious hit. Roll two dice before anyone else shoots.")
+                ? "\(owed.unitName) took a serious hit. The app rolls before anyone else shoots."
+                : "\(owed.unitName) took a serious hit. Roll two dice before anyone else shoots.")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
-            if pendingCrits(session).count > 1 {
-                Text("\(pendingCrits(session).count) criticals are waiting. This one is first.")
+            if owed.count > 1 {
+                Text("\(owed.count) criticals are waiting. This one is first.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
-        } else {
-            switch session.phase {
+        }
+        switch coach.step {
             case .initiative:
-                Text(session.diceMode == .auto
-                    ? "We don’t have dice. The app rolls both sides. Highest total moves and shoots last. Same totals? It rolls again."
-                    : "Each side rolls two dice. Highest total moves and shoots last. Same totals? Roll again.")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                if session.diceMode == .auto {
-                    Button("We have dice — enter the roll") {
-                        store.setDiceMode(.manual)
-                        showInitiative = true
-                    }
-                } else {
-                    Button("We don’t have dice — let the app roll") {
-                        store.setDiceMode(.auto)
-                        store.rollInitiative()
-                    }
-                    .accessibilityIdentifier("as.battle.rollInit")
-                }
-                if canSwapSides(session) {
-                    Button("We’re sitting on the wrong sides") { store.swapSides() }
-                }
-            case .movement:
-                movementStep(session)
+                initiativeEntry()
+            case .placeMiniatures, .movement:
+                movementStep(session, coach: coach)
             case .combat:
-                Text(combatCoach(session))
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
                 shotsThisTurn(session)
                 compactHealth(session, shooting: true)
-                if pendingCrits(session).isEmpty {
-                    Button("\(session.activeSide.displayName) is done shooting") {
-                        let canStillShoot = session.units.contains {
-                            $0.side == session.activeSide && $0.canAttackThisTurn
-                        }
-                        if canStillShoot {
-                            showDoneShootingConfirm = true
-                        } else {
-                            store.finishCombatSide()
-                        }
-                    }
-                    .accessibilityIdentifier("as.battle.doneShooting")
-                }
             case .end:
-                if let max = session.ruleset.maxTurns, session.turn >= max {
-                    Text("Last turn. The side with the most structure left wins, even if ’Mechs are still standing. Equal structure is a draw.")
+                HStack(alignment: .center, spacing: 0) {
+                    Text("Take wrecks off the table.")
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    if let max = session.ruleset.maxTurns, session.turn >= max {
+                        InfoButton(title: "How the game can end") { _ in
+                            Text("Last turn. The side with the most structure left wins, even if ’Mechs are still standing. Equal structure is a draw.")
+                                .font(.subheadline)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                    }
                 }
-                Text("Pick up any ’Mech whose structure hit 0. Then tap the button at the bottom.")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
+                .buttonStyle(.borderless)
                 compactHealth(session)
+            case .tableSetup, .victory:
+                EmptyView()
             }
-        }
     }
 
     @ViewBuilder
-    private func movementStep(_ session: MatchSession) -> some View {
-        if session.turn == 1, !deployAcknowledged {
-            Text("Put each side’s two ’Mechs within 6 inches of its own short table edge. \(session.activeSide.displayName) places one first, then take turns.")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-        } else {
-            Text("Move the miniature with the tape, then record how far it went.")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-            if session.units.contains(where: { $0.combatStatus == .destroyedPendingEnd }) {
-                Text("Wrecks stay where they are. They can still shoot this turn.")
+    private func movementStep(_ session: MatchSession, coach: BattleCoach) -> some View {
+        if coach.step == .placeMiniatures {
+            HStack(alignment: .top, spacing: 0) {
+                Text("Place each side on its own short edge. \(session.activeSide.displayName) places first.")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                InfoButton(title: "About placement") { _ in
+                    Text("Put each side’s ’Mechs within 6 inches of its own short edge.")
+                        .font(.subheadline)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
             }
-            movementRecorder(session)
-            recordedMoveEditor(session)
+            .buttonStyle(.borderless)
+        } else {
+            Group {
+                Text("Measure, then tap how it moved.")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                if session.units.contains(where: { $0.combatStatus == .destroyedPendingEnd }) {
+                    Text("Wrecks stay. They can still shoot.")
+                }
+                recordedMoveChecks(session)
+                movementRecorder(session)
+                recordedMoveEditor(session)
+            }
+            .buttonStyle(.borderless)
         }
-        if canSwapSides(session) {
-            Button("We’re sitting on the wrong sides") { store.swapSides() }
-        }
-    }
-
-    private func combatCoach(_ session: MatchSession) -> String {
-        let now = session.activeSide.displayName
-        let other = session.activeSide.other.displayName
-        if session.initiativeWinner == session.activeSide {
-            return "Both sides shoot this turn, one side at a time. \(other) is done. \(now) shoots now. Each of their ’Mechs gets one shot."
-        }
-        return "Both sides shoot this turn, one side at a time. \(now) shoots now. Each of their ’Mechs gets one shot. \(other) shoots after \(now) is done."
     }
 
     @ViewBuilder
@@ -493,6 +488,8 @@ struct BattleFlowView: View {
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
+                .accessibilityElement(children: .combine)
+                .accessibilityLabel("\(item.2) \(item.1.hit ? "hit" : "missed") \(item.1.targetName). \(item.1.rowDetail)")
                 .accessibilityIdentifier(item.1.hit ? "as.battle.shot.hit" : "as.battle.shot.miss")
             }
         }
@@ -535,63 +532,54 @@ struct BattleFlowView: View {
                     if unit.pendingCritical {
                         Text(unit.criticalsOwed > 1 ? "\(unit.criticalsOwed) criticals waiting" : "Critical waiting")
                             .font(.caption2)
-                    } else if shooting {
-                        Text(shootLine(unit, session: session))
-                            .font(.caption)
-                            .foregroundStyle(shootLineColor(unit, session: session))
-                        if let shot = unit.turnShot {
-                            Text(shot.rowDetail)
-                                .font(.caption2)
-                                .foregroundStyle(.secondary)
-                        }
                     } else if unit.combatStatus == .destroyedPendingEnd {
-                        Text("Wrecked — still shoots this turn")
+                        Text("Wrecked — still shoots")
                             .font(.caption2)
                     } else if unit.isImmobile {
                         Text("Can’t move")
                             .font(.caption2)
                     } else if unit.movementMode == .sprint {
-                        Text("Sprinted — can’t shoot")
+                        Text("Can’t shoot")
                             .font(.caption2)
+                    } else if let shot = unit.turnShot {
+                        Text(shot.rowTitle)
+                            .font(.caption)
+                        Text(shot.rowDetail)
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
                     }
-                    PipTrack(filled: unit.remainingArmor, capacity: unit.armorCap)
-                    Text("Armor \(unit.remainingArmor) · Structure \(unit.remainingStructure)")
-                        .font(.caption2)
+                    Text("Armor \(unit.remainingArmor)/\(unit.armorCap)")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    Text("Structure \(unit.remainingStructure)/\(unit.structureCap)")
+                        .font(.caption)
                         .foregroundStyle(.secondary)
                 }
             }
             .buttonStyle(.plain)
+            .accessibilityLabel(unitAccessibilityLabel(unit))
+            .accessibilityHint("Opens this ’Mech")
             .accessibilityIdentifier("as.battle.unit.\(unit.id.uuidString)")
         }
     }
 
-    private func shootLine(_ unit: MatchUnitState, session: MatchSession) -> String {
-        let shootingNow = unit.side == session.activeSide
-        let otherSideFinished = session.initiativeWinner == session.activeSide
-        if !shootingNow {
-            if otherSideFinished {
-                if let shot = unit.turnShot { return shot.rowTitle }
-                if unit.movementMode == .sprint { return "Sprinted — didn’t shoot" }
-                return "Didn’t shoot"
-            }
-            return "Not this side’s turn"
+    private func unitAccessibilityLabel(_ unit: MatchUnitState) -> String {
+        var parts: [String] = [unit.name]
+        if unit.pendingCritical {
+            parts.append(unit.criticalsOwed > 1 ? "\(unit.criticalsOwed) criticals waiting" : "Critical waiting")
+        } else if unit.combatStatus == .destroyedPendingEnd {
+            parts.append("Wrecked — still shoots")
+        } else if unit.isImmobile {
+            parts.append("Can’t move")
+        } else if unit.movementMode == .sprint {
+            parts.append("Can’t shoot")
+        } else if let shot = unit.turnShot {
+            parts.append(shot.rowTitle)
+            parts.append(shot.rowDetail)
         }
-        if unit.movementMode == .sprint { return "Sprinted — can’t shoot" }
-        if let shot = unit.turnShot { return shot.rowTitle }
-        if unit.hasAttackedThisTurn { return "Already shot" }
-        if unit.combatStatus == .destroyedPendingEnd { return "Wrecked — can still shoot" }
-        if unit.canAttackThisTurn { return "Can shoot" }
-        return "Can’t shoot"
-    }
-
-    private func shootLineColor(_ unit: MatchUnitState, session: MatchSession) -> Color {
-        if unit.side == session.activeSide, unit.canAttackThisTurn {
-            return .primary
-        }
-        if unit.turnShot?.hit == false {
-            return .orange
-        }
-        return .secondary
+        parts.append("Armor \(unit.remainingArmor) of \(unit.armorCap)")
+        parts.append("Structure \(unit.remainingStructure) of \(unit.structureCap)")
+        return parts.joined(separator: ", ")
     }
 
     private var eventLogSheet: some View {
@@ -617,93 +605,88 @@ struct BattleFlowView: View {
         .presentationDetents([.medium, .large])
     }
 
-    private func pendingCrits(_ session: MatchSession) -> [MatchUnitState] {
-        session.units.filter(\.pendingCritical)
-    }
-
-    private func otherMechStillToMove(_ session: MatchSession) -> Bool {
-        let mine = session.units.filter { $0.side == session.activeSide && $0.combatStatus == .active }
-        return mine.contains(where: \.hasMovedThisTurn) && mine.contains { !$0.hasMovedThisTurn }
-    }
-
-    private func canSwapSides(_ session: MatchSession) -> Bool {
-        (session.phase == .initiative || session.phase == .movement)
-            && !session.units.contains { $0.hasMovedThisTurn || $0.armorDamage > 0 || $0.structureDamage > 0 }
-    }
-
-    private func diceModeDetail(_ mode: DiceMode) -> String {
-        switch mode {
-        case .manual:
-            "We have dice. You tap what you rolled. The app says whether the shot hit."
-        case .auto:
-            "We don’t have dice. The app rolls and says whether the shot hit."
-        }
-    }
-
     private func attemptBack() {
         if store.backNeedsConfirm {
             showBackConfirm = true
         } else {
             store.back()
-            handoffSide = nil
         }
     }
 
-    private func primaryTitle(_ session: MatchSession) -> String {
-        if let handoffSide {
-            return "It’s \(handoffSide.displayName)"
-        }
-        if let owed = pendingCrits(session).first {
-            let extra = pendingCrits(session).count > 1 ? " (\(pendingCrits(session).count) left)" : ""
-            return "Roll a critical\(extra) for \(owed.name)"
-        }
-        switch session.phase {
-        case .initiative:
-            return session.diceMode == .auto ? "Roll for both sides" : "Enter what we rolled"
-        case .movement:
-            if session.turn == 1, !deployAcknowledged {
-                return "We’ve placed them — start moving"
-            }
-            return "Start shooting"
-        case .combat:
-            return "Solve a shot"
-        case .end:
-            return "Wrecks are off — continue"
+    private func primaryTitle(_ primary: BattleCoach.Primary) -> String {
+        switch primary {
+        case .acknowledgeDeployment:
+            "Placed"
+        case .useInitiativeRolls:
+            if let name = initiativeLeaderName { "\(name) goes first" } else { "Use rolls" }
+        case .rollInitiative:
+            "Roll"
+        case .startShooting:
+            "Start shooting"
+        case .solveShot:
+            "Solve a shot"
+        case .rollCritical(let count):
+            count > 1 ? "Critical (\(count))" : "Critical"
+        case .resolveEnd:
+            "Continue"
         }
     }
 
-    private func primaryAction(_ session: MatchSession) {
-        if handoffSide != nil {
-            handoffSide = nil
-            return
-        }
-        if let owed = pendingCrits(session).first {
-            showCrit = owed
-            return
-        }
-        switch session.phase {
-        case .initiative:
-            if session.diceMode == .auto {
-                store.rollInitiative()
+    private func primaryHint(_ primary: BattleCoach.Primary) -> String {
+        switch primary {
+        case .acknowledgeDeployment:
+            "Records that the miniatures are placed."
+        case .useInitiativeRolls:
+            if let name = initiativeLeaderName {
+                "\(name) moves first."
             } else {
-                showInitiative = true
+                "Uses these dice to decide who goes first."
             }
-        case .movement:
-            if session.turn == 1, !deployAcknowledged {
-                deployAcknowledged = true
-                handoffSide = session.activeSide
-                return
+        case .rollInitiative:
+            "Rolls both sides to decide who goes first."
+        case .startShooting:
+            "Ends movement and starts shooting."
+        case .solveShot:
+            "Opens the shot solver."
+        case .rollCritical(let count):
+            count > 1 ? "Opens the next critical roll. \(count) are waiting." : "Opens the critical roll."
+        case .resolveEnd:
+            "Finishes cleanup and continues the game."
+        }
+    }
+
+    private func primaryAction(_ session: MatchSession, coach: BattleCoach) {
+        switch coach.primary {
+        case .rollCritical:
+            if let pending = coach.pendingCritical,
+               let unit = session.units.first(where: { $0.id == pending.unitId }) {
+                showCrit = unit
             }
-            if AlphaStrikePhaseEngine.movementComplete(units: session.units) {
+        case .rollInitiative:
+            store.rollInitiative()
+        case .useInitiativeRolls:
+            if initiativeReady, let a1, let a2, let b1, let b2 {
+                store.setInitiative(a1: a1, a2: a2, b1: b1, b2: b2)
+                self.a1 = nil
+                self.a2 = nil
+                self.b1 = nil
+                self.b2 = nil
+            }
+        case .acknowledgeDeployment:
+            store.acknowledgeDeployment()
+        case .startShooting:
+            if coach.movementComplete {
                 store.skipMovesAndAdvance()
             } else {
                 showSkipConfirm = true
             }
-        case .combat:
+        case .solveShot:
             prefillAttackerId = nil
             showSATOR = true
-        case .end:
+        case .resolveEnd:
             store.resolveEnd()
+        case nil:
+            break
         }
     }
 
@@ -714,26 +697,87 @@ struct BattleFlowView: View {
                 && $0.combatStatus == .active
                 && !$0.hasMovedThisTurn
         }
-        if movers.isEmpty {
-            Text("\(session.activeSide.displayName) has recorded every move. If the other side still needs to move, they go next. If not, start shooting.")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-        }
-        ForEach(movers) { unit in
-                Menu {
-                    ForEach(unit.legalMovementModes, id: \.self) { mode in
-                        Button(mode.displayName) {
-                            store.setMove(unitId: unit.id, mode: mode)
-                        }
-                    }
-                } label: {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(unit.name)
-                        Text(unit.movementMode.coachDetail)
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
+        if let unit = movers.first {
+            HStack(alignment: .center, spacing: 0) {
+                Text(unit.name)
+                    .font(.headline)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                if let hint = moveHint(for: unit), !unit.isImmobile {
+                    InfoButton(title: "About moving") { _ in
+                        Text(hint)
+                            .font(.subheadline)
+                            .fixedSize(horizontal: false, vertical: true)
                     }
                 }
+            }
+            .buttonStyle(.borderless)
+            if let move = PrintedMove(unit.effectiveMV), !unit.isImmobile {
+                Text(move.summary)
+                    .font(.title2.weight(.semibold))
+                    .multilineTextAlignment(.center)
+                    .frame(maxWidth: .infinity)
+                    .accessibilityLabel(move.spokenSummary)
+            }
+            ForEach(unit.legalMovementModes, id: \.self) { mode in
+                let move = PrintedMove(unit.effectiveMV)
+                Button {
+                    store.setMove(unitId: unit.id, mode: mode)
+                } label: {
+                    Text(moveButtonLabel(mode, move: unit.isImmobile ? nil : move))
+                        .font(.body.weight(.semibold))
+                        .multilineTextAlignment(.center)
+                        .frame(maxWidth: .infinity, minHeight: 44)
+                }
+                .buttonStyle(.bordered)
+                .buttonBorderShape(.roundedRectangle)
+                .controlSize(.large)
+                .listRowSeparator(.hidden)
+                .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 4, trailing: 16))
+                .listRowBackground(Color.clear)
+                .accessibilityLabel(move?.spokenChoice(mode) ?? moveButtonTitle(mode))
+                .accessibilityIdentifier("as.battle.move.\(mode.rawValue)")
+            }
+            if unit.isImmobile, let hint = moveHint(for: unit) {
+                Text(hint)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+        }
+    }
+
+    private func moveButtonTitle(_ mode: MovementMode) -> String {
+        switch mode {
+        case .unset: "Move"
+        case .standstill: "Still"
+        case .ground: "Walk"
+        case .sprint: "Sprint"
+        case .jump: "Jump"
+        }
+    }
+
+    private func moveButtonLabel(_ mode: MovementMode, move: PrintedMove?) -> String {
+        guard let move, let detail = move.detail(for: mode) else { return moveButtonTitle(mode) }
+        return "\(moveButtonTitle(mode)) · \(detail)"
+    }
+
+    private func moveHint(for unit: MatchUnitState) -> String? {
+        if unit.isImmobile { return "Can’t move." }
+        var parts: [String] = []
+        if unit.legalMovementModes.contains(.sprint) { parts.append("Sprint can’t shoot.") }
+        if unit.legalMovementModes.contains(.jump) { parts.append("Jump shoots worse.") }
+        return parts.isEmpty ? nil : parts.joined(separator: " ")
+    }
+
+    @ViewBuilder
+    private func recordedMoveChecks(_ session: MatchSession) -> some View {
+        let recorded = session.units.filter {
+            $0.side == session.activeSide && $0.hasMovedThisTurn && $0.combatStatus == .active
+        }
+        ForEach(recorded) { unit in
+            let choice = moveButtonTitle(unit.movementMode)
+            Label("\(unit.name) · \(choice)", systemImage: "checkmark")
+                .font(.subheadline.weight(.semibold))
+                .accessibilityLabel("\(unit.name), \(choice)")
         }
     }
 
@@ -762,69 +806,89 @@ struct BattleFlowView: View {
         }
     }
 
-    private var initiativeSheet: some View {
-        NavigationStack {
-            Form {
-                Section {
-                    Text("Tap the faces you rolled. Highest total goes last this turn.")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                }
-                Section("Side A rolled") {
-                    DiceFaces(title: "First die", value: $a1)
-                    DiceFaces(title: "Second die", value: $a2)
-                    Text(diceTotal(a1, a2))
-                        .foregroundStyle(.secondary)
-                }
-                Section("Side B rolled") {
-                    DiceFaces(title: "First die", value: $b1)
-                    DiceFaces(title: "Second die", value: $b2)
-                    Text(diceTotal(b1, b2))
-                        .foregroundStyle(.secondary)
-                }
-                if let a1, let a2, let b1, let b2, a1 + a2 == b1 + b2 {
-                    Section {
-                        Text("Same total — both sides roll again, then change the numbers.")
-                            .foregroundStyle(.orange)
-                            .accessibilityIdentifier("as.initiative.tieHint")
-                    }
-                }
+    @ViewBuilder
+    private func initiativeEntry() -> some View {
+        DiceModePicker(mode: diceModeBinding, identifier: "as.battle.rollInit")
+        if (store.session?.diceMode ?? .manual) == .manual {
+            Text(SideId.lanceA.displayName)
+                .font(.subheadline.weight(.semibold))
+            DiceFaces(title: "First die", value: $a1)
+            DiceFaces(title: "Second die", value: $a2)
+            diceTotalLine(a1, a2)
+            Text(SideId.lanceB.displayName)
+                .font(.subheadline.weight(.semibold))
+            DiceFaces(title: "First die", value: $b1)
+            DiceFaces(title: "Second die", value: $b2)
+            diceTotalLine(b1, b2)
+            if let a1, let a2, let b1, let b2, a1 + a2 == b1 + b2 {
+                Text("Same total — roll again.")
+                    .font(.headline)
+                    .foregroundStyle(.orange)
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .accessibilityIdentifier("as.initiative.tieHint")
+            } else if let name = initiativeLeaderName {
+                Text("\(name) goes first")
+                    .font(.title3.weight(.semibold))
+                    .frame(maxWidth: .infinity, alignment: .center)
             }
-            .navigationTitle("Dice roll")
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { showInitiative = false }
-                }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Use these rolls") {
-                        guard let a1, let a2, let b1, let b2 else { return }
-                        store.setInitiative(a1: a1, a2: a2, b1: b1, b2: b2)
-                        if store.session?.phase == .movement {
-                            showInitiative = false
-                            self.a1 = nil
-                            self.a2 = nil
-                            self.b1 = nil
-                            self.b2 = nil
-                        }
-                    }
-                    .disabled(!initiativeReady)
-                    .accessibilityIdentifier("as.initiative.apply")
-                }
-            }
+        } else {
+            Text("The app rolls both sides. The Roll button is below.")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
         }
-        .presentationDetents([.medium, .large])
-        .presentationDragIndicator(.visible)
-        .accessibilityIdentifier("as.initiative.sheet")
+    }
+
+    private func showsDoneShooting(_ coach: BattleCoach) -> Bool {
+        coach.step == .combat && coach.pendingCritical == nil
+    }
+
+    private func finishShooting(_ coach: BattleCoach) {
+        if coach.finishCombatNeedsConfirm {
+            showDoneShootingConfirm = true
+        } else {
+            store.finishCombatSide()
+        }
+    }
+
+    private var diceModeBinding: Binding<DiceMode> {
+        Binding(
+            get: { store.session?.diceMode ?? .manual },
+            set: { newMode in
+                a1 = nil
+                a2 = nil
+                b1 = nil
+                b2 = nil
+                store.setDiceMode(newMode)
+            }
+        )
     }
 
     private var initiativeReady: Bool {
-        guard let a1, let a2, let b1, let b2 else { return false }
-        return a1 + a2 != b1 + b2
+        initiativeLeaderName != nil
     }
 
-    private func diceTotal(_ first: Int?, _ second: Int?) -> String {
-        guard let first, let second else { return "Tap both dice" }
-        return "Total \(first + second)"
+    private var initiativeLeaderName: String? {
+        guard let a1, let a2, let b1, let b2 else { return nil }
+        let sideA = a1 + a2
+        let sideB = b1 + b2
+        if sideA > sideB { return SideId.lanceA.displayName }
+        if sideB > sideA { return SideId.lanceB.displayName }
+        return nil
+    }
+
+    @ViewBuilder
+    private func diceTotalLine(_ first: Int?, _ second: Int?) -> some View {
+        if let first, let second {
+            Text("\(first + second)")
+                .font(.title.weight(.semibold))
+                .frame(maxWidth: .infinity, alignment: .center)
+                .accessibilityLabel("Total \(first + second)")
+        } else {
+            Text("Tap both dice")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                .frame(maxWidth: .infinity, alignment: .center)
+        }
     }
 }
 
@@ -890,9 +954,24 @@ private struct CritSheet: View {
         NavigationStack {
             Form {
                 Section {
-                    Text("\(unit.name) took a serious hit. The app applies the result, including a wreck or no effect.")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
+                    HStack(alignment: .center, spacing: 0) {
+                        Text(unit.name)
+                            .font(.headline)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        InfoButton(title: "About criticals") { _ in
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text("\(unit.name) took a serious hit. The app applies the result, including a wreck or no effect.")
+                                    .font(.subheadline)
+                                    .fixedSize(horizontal: false, vertical: true)
+                                if let d1, let d2, critPreview(d1 + d2) != critOneLine(d1 + d2) {
+                                    Text(critPreview(d1 + d2))
+                                        .font(.subheadline)
+                                        .fixedSize(horizontal: false, vertical: true)
+                                }
+                            }
+                        }
+                    }
+                    .buttonStyle(.borderless)
                     DiceRollEntry(
                         mode: Binding(
                             get: { store.session?.diceMode ?? .manual },
@@ -910,17 +989,25 @@ private struct CritSheet: View {
                         identifierPrefix: "as.crit"
                     )
                     if let d1, let d2 {
-                        Text(critPreview(d1 + d2))
+                        Text(critOneLine(d1 + d2))
                             .font(.headline)
                     }
                 }
-                Button("Apply this critical") {
+                Button {
                     guard let d1, let d2 else { return }
                     if store.applyPendingCrit(unitId: unit.id, die1: d1, die2: d2) {
                         dismiss()
                     }
+                } label: {
+                    Text("Apply this critical")
+                        .frame(maxWidth: .infinity, minHeight: 44)
                 }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.large)
                 .disabled(d1 == nil || d2 == nil)
+                .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
+                .listRowBackground(Color.clear)
+                .accessibilityIdentifier("as.crit.confirm")
             }
             .navigationTitle("Critical hit")
         }
@@ -940,6 +1027,31 @@ private struct CritSheet: View {
         case .destroyed: "Destroyed. It is wrecked, and it can still shoot this turn."
         }
     }
+
+    private func critOneLine(_ total: Int) -> String {
+        let full = critPreview(total)
+        guard let dot = full.firstIndex(of: ".") else { return full }
+        let after = full.index(after: dot)
+        if after == full.endIndex { return full }
+        return String(full[...dot])
+    }
+}
+
+struct DiceModePicker: View {
+    @Binding var mode: DiceMode
+    var identifier: String
+
+    var body: some View {
+        Picker("How to roll", selection: $mode) {
+            Text("Real dice").tag(DiceMode.manual)
+            Text("In the app").tag(DiceMode.auto)
+        }
+        .pickerStyle(.segmented)
+        .labelsHidden()
+        .accessibilityLabel("How to roll")
+        .accessibilityHint("Real dice on the table, or the app rolls")
+        .accessibilityIdentifier(identifier)
+    }
 }
 
 struct DiceRollEntry: View {
@@ -950,29 +1062,42 @@ struct DiceRollEntry: View {
     var autoPrompt: String
     var identifierPrefix: String
 
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Picker("How to roll", selection: $mode) {
-                Text("Manual").tag(DiceMode.manual)
-                Text("Auto").tag(DiceMode.auto)
+    private var clearingMode: Binding<DiceMode> {
+        Binding(
+            get: { mode },
+            set: { newMode in
+                guard newMode != mode else { return }
+                die1 = nil
+                die2 = nil
+                mode = newMode
             }
-            .pickerStyle(.segmented)
-            .accessibilityIdentifier("\(identifierPrefix).diceMode")
+        )
+    }
 
+    var body: some View {
+        Group {
+            DiceModePicker(mode: clearingMode, identifier: "\(identifierPrefix).diceMode")
             if mode == .auto {
-                Button(die1 == nil || die2 == nil ? "Roll" : "Roll again") {
+                Button {
                     die1 = Int.random(in: 1...6)
                     die2 = Int.random(in: 1...6)
+                } label: {
+                    Text(die1 == nil || die2 == nil ? "Roll" : "Roll again")
+                        .frame(maxWidth: .infinity, minHeight: 44)
                 }
                 .buttonStyle(.borderedProminent)
+                .controlSize(.large)
+                .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
+                .listRowBackground(Color.clear)
                 .accessibilityIdentifier("\(identifierPrefix).autoRoll")
                 if let die1, let die2 {
                     Text("Rolled \(die1) and \(die2) · total \(die1 + die2)")
-                        .foregroundStyle(.secondary)
+                        .frame(maxWidth: .infinity, alignment: .center)
                 } else {
                     Text(autoPrompt)
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
+                        .frame(maxWidth: .infinity, alignment: .center)
                 }
             } else {
                 Text(manualPrompt)
@@ -984,13 +1109,71 @@ struct DiceRollEntry: View {
                     .accessibilityIdentifier("\(identifierPrefix).die2")
                 if let die1, let die2 {
                     Text("Total \(die1 + die2)")
-                        .foregroundStyle(.secondary)
+                        .font(.title3.weight(.semibold))
+                        .frame(maxWidth: .infinity, alignment: .center)
                 }
             }
         }
-        .buttonStyle(.borderless)
-        .fixedSize(horizontal: false, vertical: true)
-        .padding(.vertical, 4)
+    }
+}
+
+/// Card move such as `10"j`, `10"/6"j`, or `16"`, including a halved MP hit.
+private struct PrintedMove {
+    var walk: Int
+    var jump: Int?
+
+    init?(_ mv: String) {
+        let parts = mv.split(separator: "/")
+        guard let first = parts.first else { return nil }
+        let walkDigits = String(first.filter(\.isNumber))
+        guard let walk = Int(walkDigits) else { return nil }
+        self.walk = walk
+        if parts.count >= 2 {
+            let jumpDigits = String(parts[1].filter(\.isNumber))
+            jump = Int(jumpDigits)
+        } else if first.contains("j") {
+            jump = walk
+        } else {
+            jump = nil
+        }
+    }
+
+    var sprint: Int { Int((Double(walk) * 1.5).rounded()) }
+
+    var summary: String {
+        if let jump {
+            if jump == walk { return "\(walk)″ walk or jump" }
+            return "\(walk)″ walk · \(jump)″ jump"
+        }
+        return "\(walk)″ walk"
+    }
+
+    var spokenSummary: String {
+        if let jump {
+            if jump == walk { return "\(walk) inches, walk or jump" }
+            return "\(walk) inches walk, \(jump) inches jump"
+        }
+        return "\(walk) inches walk"
+    }
+
+    func detail(for mode: MovementMode) -> String? {
+        switch mode {
+        case .standstill: "under 1″"
+        case .ground: "\(walk)″"
+        case .sprint: "about \(sprint)″"
+        case .jump: jump.map { "\($0)″" }
+        case .unset: nil
+        }
+    }
+
+    func spokenChoice(_ mode: MovementMode) -> String {
+        switch mode {
+        case .standstill: "Still, under 1 inch"
+        case .ground: "Walk, \(walk) inches"
+        case .sprint: "Sprint, about \(sprint) inches. Can’t shoot this turn."
+        case .jump: jump.map { "Jump, \($0) inches" } ?? "Jump"
+        case .unset: "Move"
+        }
     }
 }
 

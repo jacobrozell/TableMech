@@ -15,7 +15,7 @@ public enum MatchCommand: Sendable {
     case swapSides
     case advancePhase
     case finishCombatSide
-    case updateUnit(MatchUnitState)
+    case acknowledgeDeployment
     case resolveSATOR(SATORAttackCommand)
     case applyCritical(unitId: UUID, roll: DiceRoll2D6)
     case resolveEndPhase
@@ -159,12 +159,7 @@ public enum MatchReducer {
             }
 
         case .swapSides:
-            guard next.phase == .initiative || next.phase == .movement else {
-                throw MatchDomainError.illegalPhaseTransition("Sides can be swapped until the first move")
-            }
-            guard !next.units.contains(where: {
-                $0.hasMovedThisTurn || $0.hasAttackedThisTurn || $0.armorDamage > 0 || $0.structureDamage > 0
-            }) else {
+            guard next.canSwapSides else {
                 throw MatchDomainError.illegalPhaseTransition("Sides can be swapped until the first move")
             }
             for i in next.units.indices {
@@ -196,20 +191,11 @@ public enum MatchReducer {
                 next.appendLog("End phase")
             }
 
-        case .updateUnit(let unit):
-            guard let idx = next.units.firstIndex(where: { $0.id == unit.id }) else {
-                throw MatchDomainError.unitNotFound
+        case .acknowledgeDeployment:
+            guard next.needsDeploymentAcknowledgement else {
+                throw MatchDomainError.illegalPhaseTransition("Placement is only at the start of the first turn")
             }
-            let existing = next.units[idx]
-            guard unit.side == existing.side,
-                  unit.armorCap == existing.armorCap,
-                  unit.structureCap == existing.structureCap else {
-                throw MatchDomainError.illegalPhaseTransition("Invalid unit update")
-            }
-            if existing.combatStatus == .removed, unit.combatStatus != .removed {
-                throw MatchDomainError.illegalPhaseTransition("Cannot revive removed unit")
-            }
-            next.units[idx] = unit
+            next.deploymentAcknowledged = true
 
         case .resolveSATOR(let attack):
             next = try applySATOR(next, attack)

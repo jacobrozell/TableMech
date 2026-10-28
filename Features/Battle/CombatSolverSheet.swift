@@ -13,8 +13,7 @@ struct CombatSolverSheet: View {
     @State private var d1: Int?
     @State private var d2: Int?
     @State private var showUnusual = false
-    @State private var distanceConfirmed = false
-    @State private var showWhatHappened = false
+    @ScaledMetric(relativeTo: .largeTitle) private var tnSize = 44
 
     private var attackers: [MatchUnitState] {
         session.units.filter { $0.side == session.activeSide && $0.canAttackThisTurn }
@@ -62,6 +61,15 @@ struct CombatSolverSheet: View {
         )
     }
 
+    private var rangeBandCaption: String {
+        switch insight.rangeBracket {
+        case .short: "6 inches or less"
+        case .medium: "7\u{2013}24 inches"
+        case .long: "25\u{2013}42 inches"
+        case .outOfRange: "More than 42 inches"
+        }
+    }
+
     var body: some View {
         NavigationStack {
             Form {
@@ -72,16 +80,23 @@ struct CombatSolverSheet: View {
                     }
                 } else if attacker == nil || defender == nil {
                     pairPickers
-                } else if !distanceConfirmed, let attacker, let defender {
-                    distanceStep(attacker: attacker, defender: defender)
-                } else if let solve {
-                    resultStep(solve)
+                } else if let attacker, let defender, let solve {
+                    shotScreen(attacker: attacker, defender: defender, solve: solve)
                 }
             }
             .navigationTitle("Shot solver")
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Close") { dismiss() }
+                }
+                if attacker != nil, defender != nil {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button("Change") {
+                            attackerId = nil
+                            defenderId = nil
+                        }
+                        .accessibilityLabel("Different ’Mechs")
+                    }
                 }
             }
             .onAppear {
@@ -98,17 +113,13 @@ struct CombatSolverSheet: View {
                 syncTargetMoveFromDefender()
             }
             .onChange(of: defenderId) { _, _ in
-                distanceConfirmed = false
                 d1 = nil
                 d2 = nil
-                showWhatHappened = false
                 syncTargetMoveFromDefender()
             }
             .onChange(of: attackerId) { _, _ in
-                distanceConfirmed = false
                 d1 = nil
                 d2 = nil
-                showWhatHappened = false
             }
         }
         .presentationDetents([.large])
@@ -144,20 +155,34 @@ struct CombatSolverSheet: View {
         }
     }
 
-    private func distanceStep(attacker: MatchUnitState, defender: MatchUnitState) -> some View {
+    @ViewBuilder
+    private func shotScreen(attacker: MatchUnitState, defender: MatchUnitState, solve: CombatSolve) -> some View {
         Section {
-            Text("\(attacker.name) shooting \(defender.name).")
+            Text("\(attacker.name) → \(defender.name)")
                 .font(.headline)
-            Stepper(value: $insight.rangeInches, in: 1...48) {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("Tape measure: \(insight.rangeInches) inch\(insight.rangeInches == 1 ? "" : "es")")
-                    Text(insight.rangeLabel)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+            Picker("Range", selection: Binding(
+                get: {
+                    let bracket = insight.rangeBracket
+                    return bracket == .outOfRange ? RangeBracket.long : bracket
+                },
+                set: { newValue in
+                    switch newValue {
+                    case .short: insight.rangeInches = 6
+                    case .medium: insight.rangeInches = 24
+                    case .long: insight.rangeInches = 42
+                    case .outOfRange: insight.rangeInches = 43
+                    }
                 }
+            )) {
+                Text("Short").tag(RangeBracket.short)
+                Text("Medium").tag(RangeBracket.medium)
+                Text("Long").tag(RangeBracket.long)
             }
+            .pickerStyle(.segmented)
             .accessibilityIdentifier("as.sator.range")
-
+            Text(rangeBandCaption)
+                .font(.caption)
+                .foregroundStyle(.secondary)
             if defender.isImmobile {
                 Text("The target can’t move, so this shot is easier.")
                     .font(.subheadline)
@@ -180,146 +205,103 @@ struct CombatSolverSheet: View {
                 Toggle("Shot into their rear", isOn: $insight.rearHit)
                 Toggle("I can see the target", isOn: $insight.canSeeTarget)
                 Toggle("They’re in front of the shooter", isOn: $insight.targetInFrontArc)
+                Button("More than 42 inches") { insight.rangeInches = 43 }
             }
-            Button("Use this distance") { distanceConfirmed = true }
-            Button("Different ’Mechs") {
-                attackerId = nil
-                defenderId = nil
+            .accessibilityHint("More shot conditions")
+        }
+        if insight.rangeBracket != .outOfRange {
+            Section {
+                DiceRollEntry(
+                    mode: modeBinding,
+                    die1: $d1,
+                    die2: $d2,
+                    manualPrompt: "Tap the faces you rolled.",
+                    autoPrompt: "The app rolls.",
+                    identifierPrefix: "as.sator"
+                )
             }
         }
-    }
-
-    @ViewBuilder
-    private func resultStep(_ solve: CombatSolve) -> some View {
         outcomeSection(solve)
-            .accessibilityIdentifier("as.sator.tnPreview")
-        if solve.cannotShootReason == nil, showsDamagePreview(solve) {
+        if solve.cannotShootReason == nil, solve.targetNumber?.autoMiss != true {
             DamageResolverCard(solve: solve)
-        }
-        Section {
-            Button("Change the distance") {
-                distanceConfirmed = false
-                d1 = nil
-                d2 = nil
-            }
         }
     }
 
     @ViewBuilder
     private func outcomeSection(_ solve: CombatSolve) -> some View {
-        Section("Did it hit?") {
+        Section {
             if let reason = solve.cannotShootReason {
                 Text(reason)
                     .foregroundStyle(.orange)
             } else if solve.targetNumber?.autoMiss == true {
-                Text("Miss")
+                Label("Miss", systemImage: "xmark.circle")
                     .font(.largeTitle.bold())
+                    .foregroundStyle(.red)
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .accessibilityLabel("Miss")
                     .accessibilityIdentifier("as.sator.outcome")
                 Text("Need 13 or higher. This shot always misses.")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
             } else if let tn = solve.targetNumber {
-                Text("Need \(tn.value) or higher · \(tn.hitOddsPercent)%")
-                    .font(.headline)
-                DiceRollEntry(
-                    mode: modeBinding,
-                    die1: $d1,
-                    die2: $d2,
-                    manualPrompt: "Roll two dice on the table, then tap the faces.",
-                    autoPrompt: "The app rolls two dice.",
-                    identifierPrefix: "as.sator"
-                )
-                if let isHit = solve.isHit {
-                    Text(isHit ? "Hit" : "Miss")
-                        .font(.largeTitle.bold())
-                        .foregroundStyle(isHit ? .primary : .secondary)
-                        .accessibilityIdentifier("as.sator.outcome")
+                VStack(spacing: 2) {
+                    Text("\(tn.value)+")
+                        .font(.system(size: tnSize, weight: .bold, design: .rounded))
+                        .frame(maxWidth: .infinity)
+                    Text("or higher")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .frame(maxWidth: .infinity)
                 }
-            }
-            if modeBinding.wrappedValue == .auto, let detail = whatHappened(solve) {
-                DisclosureGroup("What happened", isExpanded: $showWhatHappened) {
-                    VStack(alignment: .leading, spacing: 6) {
-                        ForEach(Array(detail.enumerated()), id: \.offset) { _, line in
-                            Text(line)
-                                .font(.subheadline)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                        }
+                .multilineTextAlignment(.center)
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel("Target number \(tn.value) or higher")
+                .accessibilityAddTraits(.isHeader)
+                .accessibilityIdentifier("as.sator.tnPreview")
+                if let isHit = solve.isHit {
+                    if isHit {
+                        Label("Hit", systemImage: "checkmark.circle")
+                            .font(.largeTitle.bold())
+                            .foregroundStyle(.primary)
+                            .frame(maxWidth: .infinity, alignment: .center)
+                            .accessibilityLabel("Hit")
+                            .accessibilityIdentifier("as.sator.outcome")
+                    } else {
+                        Label("Miss", systemImage: "xmark.circle")
+                            .font(.largeTitle.bold())
+                            .foregroundStyle(.red)
+                            .frame(maxWidth: .infinity, alignment: .center)
+                            .accessibilityLabel("Miss")
+                            .accessibilityIdentifier("as.sator.outcome")
                     }
                 }
-                .accessibilityIdentifier("as.sator.whatHappened")
             }
-            Button(applyTitle(solve)) { applyShot() }
-                .disabled(!canApply(solve))
-                .accessibilityIdentifier("as.sator.resolve")
-        }
-    }
-
-    private func showsDamagePreview(_ solve: CombatSolve) -> Bool {
-        if solve.targetNumber?.autoMiss == true { return false }
-        if modeBinding.wrappedValue == .auto, solve.isHit != nil { return false }
-        return true
-    }
-
-    /// Auto rolls stay a Hit or Miss until this is opened.
-    private func whatHappened(_ solve: CombatSolve) -> [String]? {
-        guard let tn = solve.targetNumber else { return nil }
-        guard solve.isHit != nil || tn.autoMiss else { return nil }
-
-        var lines: [String] = ["\(solve.attackerName) shooting \(solve.defenderName)."]
-        if let roll = solve.roll {
-            lines.append("Rolled \(roll.die1) and \(roll.die2). Total \(roll.total).")
-            if tn.autoMiss {
-                lines.append("Two dice can’t reach \(tn.value), so it misses.")
-            } else if roll.total >= tn.value {
-                lines.append("\(roll.total) is at least \(tn.value), so it hits.")
-            } else {
-                lines.append("\(roll.total) is under \(tn.value), so it misses.")
+            Button {
+                applyShot()
+            } label: {
+                Text(applyTitle(solve))
+                    .multilineTextAlignment(.center)
+                    .frame(maxWidth: .infinity, minHeight: 44)
             }
-        } else if tn.autoMiss {
-            lines.append("Two dice can’t reach \(tn.value), so it misses.")
+            .buttonStyle(.borderedProminent)
+            .controlSize(.large)
+            .disabled(!canApply(solve))
+            .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
+            .listRowBackground(Color.clear)
+            .accessibilityIdentifier("as.sator.resolve")
+            .accessibilityHint("Records this shot")
         }
-        lines.append(contentsOf: tn.reasons)
-
-        if solve.isHit == true {
-            let damage = solve.roll?.isNaturalTwelve == true ? solve.ifNaturalTwelve : solve.ifHit
-            lines.append(contentsOf: damageLines(damage, boxcars: solve.roll?.isNaturalTwelve == true))
-        } else if solve.isHit == false || tn.autoMiss {
-            lines.append("No damage.")
-            if !solve.ifHit.zeroDamage {
-                lines.append("A hit would have done \(solve.ifHit.delivered) damage.")
-            }
-        }
-        return lines
-    }
-
-    private func damageLines(_ damage: CombatDamagePreview, boxcars: Bool) -> [String] {
-        if damage.zeroDamage {
-            return ["Hit for 0 damage at this range. The shot is still used."]
-        }
-        var lines = [
-            "\(damage.delivered) damage. Armor \(damage.armorBefore) → \(damage.armorAfter). Structure \(damage.structureBefore) → \(damage.structureAfter)."
-        ]
-        if damage.wrecksThisTurn {
-            lines.append("That wrecks them. They can still shoot this turn. Take the model off at Clean up.")
-        } else if damage.needsCritical {
-            lines.append(boxcars
-                ? "Two 6s. A critical happens even if armor stopped the damage."
-                : "Structure was hit, so a critical is owed.")
-        } else {
-            lines.append("Armor stopped it. A critical only happens on two 6s.")
-        }
-        return lines
     }
 
     private func applyTitle(_ solve: CombatSolve) -> String {
-        if solve.cannotShootReason != nil { return "Can’t apply this shot" }
-        if solve.targetNumber?.autoMiss == true { return "Always misses — this uses the shot" }
+        if solve.cannotShootReason != nil { return "Can’t apply" }
+        if solve.targetNumber?.autoMiss == true { return "Apply miss" }
         if solve.isHit == true {
-            if solve.ifHit.zeroDamage { return "Hit for 0 — this still uses the shot" }
-            return "Apply hit — \(solve.ifHit.delivered) damage"
+            if solve.ifHit.zeroDamage { return "Apply hit" }
+            return "Apply \(solve.ifHit.delivered) damage"
         }
         if solve.isHit == false { return "Apply miss" }
-        return "Apply this shot"
+        return "Apply"
     }
 
     private var applyingFaces: (Int, Int)? {
@@ -357,6 +339,34 @@ struct CombatSolverSheet: View {
 private struct DamageResolverCard: View {
     let solve: CombatSolve
 
+    private var boxcarsOweCritical: Bool {
+        solve.isHit == true && solve.roll?.isNaturalTwelve == true && solve.ifNaturalTwelve.needsCritical
+    }
+
+    private var statusLine: String? {
+        if solve.ifHit.wrecksThisTurn { return "This wrecks them." }
+        if solve.ifHit.needsCritical || boxcarsOweCritical { return "A critical is owed." }
+        return nil
+    }
+
+    private var whatHappensNext: String? {
+        var parts: [String] = []
+        if !solve.ifHit.zeroDamage {
+            if solve.ifHit.wrecksThisTurn {
+                parts.append("That wrecks them. They can still shoot this turn; take the model off at Clean up.")
+            } else if solve.ifHit.needsCritical {
+                parts.append("You’ll also roll a critical. Structure was hit.")
+            } else {
+                parts.append("Armor absorbs it. A critical only happens on two 6s.")
+            }
+        }
+        if boxcarsOweCritical {
+            parts.append("Two 6s: a critical happens even if armor stopped the damage.")
+        }
+        guard !parts.isEmpty else { return nil }
+        return parts.joined(separator: "\n")
+    }
+
     var body: some View {
         Section("If this hits") {
             VStack(alignment: .leading, spacing: 6) {
@@ -371,23 +381,21 @@ private struct DamageResolverCard: View {
                     Text("Structure \(solve.ifHit.structureBefore) → \(solve.ifHit.structureAfter)")
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
-                    if solve.ifHit.wrecksThisTurn {
-                        Text("That wrecks them. They can still shoot this turn; take the model off at Clean up.")
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                    } else if solve.ifHit.needsCritical {
-                        Text("You’ll also roll a critical. Structure was hit.")
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                    } else {
-                        Text("Armor absorbs it. A critical only happens on two 6s.")
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                    }
                 }
-                if solve.isHit == true, solve.roll?.isNaturalTwelve == true, solve.ifNaturalTwelve.needsCritical {
-                    Text("Two 6s: a critical happens even if armor stopped the damage.")
+                if let statusLine {
+                    Text(statusLine)
                         .font(.subheadline)
+                }
+            }
+            if let explanation = whatHappensNext {
+                HStack {
+                    Text("What happens next")
+                    Spacer(minLength: 8)
+                    InfoButton(title: "What happens next") { _ in
+                        Text(explanation)
+                            .font(.subheadline)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
                 }
             }
         }

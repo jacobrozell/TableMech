@@ -23,10 +23,31 @@ final class MatchStore: Identifiable {
         self.repository = repository
     }
 
-    func startRidgeLine(from catalog: any ContentCatalogRepository) {
+    static func loadActive(from repository: any MatchSessionRepository) throws -> MatchSession? {
+        try repository.loadActive(mode: .alphaStrike)
+    }
+
+    /// Loads the saved Alpha Strike match into this store. Returns false when nothing is active.
+    @discardableResult
+    func resumeActive() throws -> Bool {
+        guard let session = try Self.loadActive(from: repository) else {
+            return false
+        }
+        resume(session)
+        return true
+    }
+
+    func startRidgeLine(from catalog: any ContentCatalogRepository, replaceActive: Bool) {
         do {
-            if let existing = try repository.loadActive(mode: .alphaStrike) {
-                try repository.delete(id: existing.id)
+            let existing = try Self.loadActive(from: repository)
+            switch MatchLaunch.decide(existingActive: existing, replaceActive: replaceActive) {
+            case .blocked:
+                lastError = "A game is already in progress"
+                return
+            case .replace(let id):
+                try repository.delete(id: id)
+            case .startFresh:
+                break
             }
             let dto = try catalog.ridgeLineScenario()
             let ruleset = RidgeLineFactory.mapRuleset(dto.ruleset)
@@ -47,7 +68,7 @@ final class MatchStore: Identifiable {
         if let session, session.status == .completed {
             try? repository.delete(id: session.id)
         }
-        startRidgeLine(from: catalog)
+        startRidgeLine(from: catalog, replaceActive: false)
     }
 
     func resume(_ session: MatchSession) {
@@ -106,6 +127,10 @@ final class MatchStore: Identifiable {
 
     func markTableReady() {
         mutate(.markTableReady)
+    }
+
+    func acknowledgeDeployment() {
+        mutate(.acknowledgeDeployment)
     }
 
     /// Preference for the rest of this match. Not an undo step.

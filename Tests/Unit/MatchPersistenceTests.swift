@@ -112,4 +112,19 @@ struct MatchPersistenceTests {
         let loaded = try #require(try repo.loadActive(mode: .alphaStrike))
         #expect(loaded.turn == 3)
     }
+
+    @Test("deleteAll removes the active session")
+    func deleteAll() throws {
+        let repo = InMemoryMatchSessionRepository()
+        let session = MatchSession(
+            ruleset: .ridgeLine,
+            status: .active,
+            tableReady: true,
+            forcesLoaded: true
+        )
+        try repo.save(session)
+        #expect(try repo.loadActive(mode: .alphaStrike) != nil)
+        try repo.deleteAll()
+        #expect(try repo.loadActive(mode: .alphaStrike) == nil)
+    }
 }

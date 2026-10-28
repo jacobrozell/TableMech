@@ -126,6 +126,8 @@ public struct MatchSession: Identifiable, Codable, Sendable, Equatable {
     public var tableReady: Bool
     public var forcesLoaded: Bool
     public var diceMode: DiceMode
+    /// Turn 1 placement has been confirmed. Old saves decode as false.
+    public var deploymentAcknowledged: Bool
     public var updatedAt: Date
     /// Prior sessions for Undo and Back. Empty on snapshots so saves stay flat.
     public var recoverySnapshots: [MatchSession]
@@ -148,6 +150,7 @@ public struct MatchSession: Identifiable, Codable, Sendable, Equatable {
         tableReady: Bool = false,
         forcesLoaded: Bool = false,
         diceMode: DiceMode = .manual,
+        deploymentAcknowledged: Bool = false,
         updatedAt: Date = Date(),
         recoverySnapshots: [MatchSession] = []
     ) {
@@ -168,6 +171,7 @@ public struct MatchSession: Identifiable, Codable, Sendable, Equatable {
         self.tableReady = tableReady
         self.forcesLoaded = forcesLoaded
         self.diceMode = diceMode
+        self.deploymentAcknowledged = deploymentAcknowledged
         self.updatedAt = updatedAt
         self.recoverySnapshots = recoverySnapshots
     }
@@ -175,7 +179,7 @@ public struct MatchSession: Identifiable, Codable, Sendable, Equatable {
     private enum CodingKeys: String, CodingKey {
         case id, schemaVersion, modeId, scenarioId, ruleset, turn, phase, activeSide
         case initiativeWinner, initiativeRolls, units, eventLog, status, outcome
-        case tableReady, forcesLoaded, updatedAt, recoverySnapshots, diceMode
+        case tableReady, forcesLoaded, updatedAt, recoverySnapshots, diceMode, deploymentAcknowledged
     }
 
     public init(from decoder: Decoder) throws {
@@ -198,6 +202,7 @@ public struct MatchSession: Identifiable, Codable, Sendable, Equatable {
         tableReady = try container.decode(Bool.self, forKey: .tableReady)
         forcesLoaded = try container.decode(Bool.self, forKey: .forcesLoaded)
         diceMode = try container.decodeIfPresent(DiceMode.self, forKey: .diceMode) ?? .manual
+        deploymentAcknowledged = try container.decodeIfPresent(Bool.self, forKey: .deploymentAcknowledged) ?? false
         updatedAt = try container.decode(Date.self, forKey: .updatedAt)
         recoverySnapshots = try container.decodeIfPresent([MatchSession].self, forKey: .recoverySnapshots) ?? []
     }
@@ -221,7 +226,27 @@ public struct MatchSession: Identifiable, Codable, Sendable, Equatable {
         try container.encode(tableReady, forKey: .tableReady)
         try container.encode(forcesLoaded, forKey: .forcesLoaded)
         try container.encode(diceMode, forKey: .diceMode)
+        try container.encode(deploymentAcknowledged, forKey: .deploymentAcknowledged)
         try container.encode(updatedAt, forKey: .updatedAt)
         try container.encode(recoverySnapshots, forKey: .recoverySnapshots)
+    }
+}
+
+extension MatchSession {
+    /// Sides can be traded until a move, a shot, or damage is recorded.
+    public var canSwapSides: Bool {
+        guard phase == .initiative || phase == .movement else { return false }
+        return !units.contains {
+            $0.hasMovedThisTurn || $0.hasAttackedThisTurn || $0.armorDamage > 0 || $0.structureDamage > 0
+        }
+    }
+
+    /// First movement of turn 1, before anyone has moved and before the players confirm placement.
+    public var needsDeploymentAcknowledgement: Bool {
+        phase == .movement
+            && turn == 1
+            && tableReady
+            && !deploymentAcknowledged
+            && !units.contains(where: \.hasMovedThisTurn)
     }
 }
