@@ -19,47 +19,49 @@ Every MVP item needs a non-color cue and Dynamic Type path (see AccessibilitySpe
 
 ---
 
-## MVP (1.0)
+## MVP (done)
+
+Shipped in app **0.2.0** (tag `0.2.0`).
 
 ### SATOR / combat
 
 | ID | Improvement | Notes |
 |----|-------------|-------|
-| `ux.tnHero` | Large TN numeral + odds bar as hero content | Not glass; content layer |
-| `ux.hitMiss` | Hit/miss: text label + semantic color + haptics | VoiceOver announces result |
-| `ux.satorRunningTN` | Announce / show running TN after each SATOR letter change | Less-is-more labels |
+| `ux.tnHero` | Large TN numeral + odds bar as hero content | `TNGauge`: “N+”, “P% to hit”, histogram. Opaque readout, not glass |
+| `ux.hitMiss` | Hit/miss: text label + semantic color + haptics | `OutcomeBanner`; `.success` on hit, soft impact on miss |
+| `ux.satorRunningTN` | Show the running TN as SATOR terms change | Summary chips plus the gauge. VoiceOver reads the gauge as a header |
 
 ### Roster / damage
 
 | ID | Improvement | Notes |
 |----|-------------|-------|
-| `ux.pipTrack` | Arm’s-length pip tracks (armor vs structure) with counts | e.g. “3/5”; ≥44pt grouping |
-| `ux.sideIdentity` | Side A/B: badge color **and** text (“Lance A”) | Consistent on list, focus, battle |
+| `ux.pipTrack` | Arm’s-length pip tracks (armor vs structure) with counts | `PipTrack` / `HealthReadout` on battle cards, Unit Focus, and Getting Started |
+| `ux.sideIdentity` | Side A/B: badge color **and** the words “Side A” / “Side B” | Circle + coolant for Side A. Diamond + ember for Side B. Signal amber is the action color |
 
 ### Battle table
 
 | ID | Improvement | Notes |
 |----|-------------|-------|
-| `ux.phasePrompt` | One-line coach prompt primary; chips secondary | Phase selected state not color-only |
-| `ux.phaseDockGlass` | Phase dock in `GlassEffectContainer` | Morph sheets from Attack / My Unit |
-| `ux.resumeCard` | Play home resume: scenario · turn · phase | Primary CTA when session active |
+| `ux.phasePrompt` | One-line coach prompt primary; chips secondary | `CoachPrompt` in the step. `PhaseTrack` is read-only: icon, label, checkmark when done, selected trait on the current step |
+| `ux.phaseDockGlass` | Phase dock in `GlassEffectContainer` | Coach-driven secondary + primary (`PhaseDock`). See BattleTableSpec |
+| `ux.resumeCard` | Play home resume: scenario · turn · phase | `ResumeCard` also shows Side A / Side B structure bars. Continue is the signal button |
 
 ### Platform (free with correct APIs)
 
 | ID | Improvement | Notes |
 |----|-------------|-------|
-| `ux.tabMinimize` | `.tabBarMinimizeBehavior(.onScrollDown)` on root lists | Force / Rules |
+| `ux.tabMinimize` | `.tabBarMinimizeBehavior(.onScrollDown)` on the root `TabView` | `RootTabView` |
 | `ux.sidebarAdaptable` | `.tabViewStyle(.sidebarAdaptable)` | iPad |
-| `ux.defaultSheets` | System sheet glass; no custom `presentationBackground` | Unless documented exception |
+| `ux.defaultSheets` | System sheet glass; no custom `presentationBackground` | Detents + drag indicator on solver, crit, Unit Focus, log, Classic |
 | `ux.brandInContent` | Brand fills inside scroll content for glass sampling | Per IOS26PlatformSpec |
 
 ### Motion (MVP, Reduce Motion aware)
 
 | ID | Improvement | Notes |
 |----|-------------|-------|
-| `ux.motionDice` | Short feedback on 2D6 resolve | Skip flourish if Reduce Motion |
-| `ux.motionPhase` | Discrete phase change feedback | No continuous shimmer |
-| `ux.motionApply` | Feedback when damage applies to pips | |
+| `ux.motionDice` | Short feedback on 2D6 resolve | `DiceTray` haptic; initiative readout uses `tmSymbolBounce` |
+| `ux.motionPhase` | Discrete phase change feedback | `PhaseTrack` uses `TMMotion.phase`. Pass-the-phone banner on side change |
+| `ux.motionApply` | Feedback when damage applies to pips | `PipTrack` drain, staggered; skipped flourish when Reduce Motion is on |
 
 ### Explicit non-goals (MVP)
 
@@ -70,18 +72,25 @@ Every MVP item needs a non-color cue and Dynamic Type path (see AccessibilitySpe
 
 ---
 
+## MVP (done) — shipped early
+
+These were listed as 1.x. The 0.2.0 app already includes them.
+
+| ID | What ships | Notes |
+|----|-------------|-------|
+| `ux.moveModeTokens` | Recorded move as a `StatusChip` on Unit Focus (“Stood still”, “Walked”, “Jumped”, “Sprinted”) | Movement step uses the same four modes as buttons |
+| `ux.critCard` | `CritSheet`: dice tray, large readout, result name, confirm | Opens from the battle screen after the solver dismisses |
+| `ux.pvMeter` | Force tab `PVBalanceBar`: Side A vs Side B bar and a gap line | “Even”, “Gap N — even” through 5, otherwise “Gap N — {side} ahead” |
+| `ux.emptyStates` | `EmptyState`: symbol, title, message, optional button | Force load failure, rules search, solver with nothing left to shoot, empty match log |
+| `ux.landscapeSplit` | Phone landscape: unit strip beside the step. iPad regular width: step beside a roster column | `BattleStageLayout` |
+| `ux.symbolEffects` | `tmSymbolBounce` on dice landings and the victory mark | Omitted when Reduce Motion is on |
+| `ux.hapticsSetting` | Settings → Haptics, default on | `TMHaptics` reads `hapticsEnabled` |
+
 ## 1.x polish
 
 | ID | Improvement | Notes |
 |----|-------------|-------|
-| `ux.moveModeTokens` | Standstill / ground / jump / sprint chips on Unit Focus | Mirrors table tokens |
-| `ux.heatScale` | Vertical 0–4 heat with shutdown state | Not number-only |
-| `ux.critCard` | Large 2D6 + crit name + confirm apply | |
-| `ux.pvMeter` | Side A vs B PV bar + gap warning | Force list |
-| `ux.emptyStates` | Illustrated empty CTAs (load roster / start Ridge Line) | DesignSystem `EmptyState` |
-| `ux.landscapeSplit` | Phone landscape: unit strip \| tool | BattleTableSpec Phase 7 |
-| `ux.symbolEffects` | SF Symbol bounce/variable on dice & phase | Gated by Reduce Motion |
-| `ux.hapticsSetting` | Settings toggle already in SettingsSpec — wire to all feedback | |
+| `ux.heatScale` | Vertical 0–4 heat with shutdown state | Heat is stored on the unit and added into SATOR. No heat scale is on screen |
 
 ---
 
@@ -89,11 +98,11 @@ Every MVP item needs a non-color cue and Dynamic Type path (see AccessibilitySpe
 
 | ID | Improvement | Notes |
 |----|-------------|-------|
-| `ux.weightGlyph` | Abstract weight-class silhouette per unit | Not licensed art |
+| `ux.weightGlyph` | Abstract weight-class silhouette per unit | Deferred. No glyph component in the app |
 | `ux.commTapeLog` | Compact match log styling | |
 | `ux.rulesShare` | Share / print-friendly Rules tables | |
 | `ux.turnWidget` | Home-screen widget: Turn N · phase | Post–App Intents readiness |
-| `ux.customDisplayFont` | Optional condensed display for TN only | Must scale with Dynamic Type; exception in DesignSystem Verification |
+| `ux.customDisplayFont` | Optional condensed display for TN only | Unused. TN uses SF Pro Rounded. See DesignSystemSpec |
 
 ---
 
@@ -123,7 +132,7 @@ One primary brand moment per screen:
 
 | Field | Value |
 |-------|-------|
-| Target release | 1.0.0 (MVP tier) / 1.x (polish tier) |
-| Last verified | 2026-08-21 |
-| Commit | — |
-| Code paths | *not implemented* |
+| Target release | 1.0.0 (MVP tier) / 1.x (`ux.heatScale` and Later) |
+| Last verified | 2026-10-28 |
+| Commit | `b9acebb` (tag `0.2.0`) |
+| Code paths | `DesignSystem/Components/TNGauge.swift`, `OutcomeBanner.swift`, `PipTrack.swift`, `SideBadge.swift`, `PhaseTrack.swift`, `PhaseDock.swift`, `ResumeCard.swift`, `EmptyState.swift`; `Features/Battle/BattleFlowView.swift`, `CombatSolverSheet.swift`, `CritSheet.swift`, `VictoryView.swift`; `Features/Play/PlayHomeView.swift`, `ForceListView.swift`; `App/RootTabView.swift`, `App/AppPreferences.swift` |

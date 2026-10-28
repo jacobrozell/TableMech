@@ -17,16 +17,36 @@ Do **not** rebuild the Alpha Strike HTML’s full-screen “hull chrome” as th
 2. **Semantic** — `textPrimary`, `textSecondary`, `danger`, `success`, `warning`, `surface`, `surfaceGrouped`
 3. **Game** — `armorPip`, `structurePip`, `heatLevel`, `phaseActive`, `sideA`, `sideB`
 
-Non-color cues required for hit/miss, side, phase, heat.
+Side A is coolant. Side B is ember. Signal amber is the “do this now” color on the dock and primary actions.
+
+Non-color cues required for hit/miss, side, phase, heat. Side A is a circle. Side B is a diamond.
 
 ## Typography
 
-Prefer **system fonts** for body/UI (Dynamic Type + iOS 26 familiarity). Brand moments:
+The brand display face is **SF Pro**, using system width and design variants. There is no custom font.
 
-- TN / turn numerals: system rounded or condensed **in content**
-- Stats: `Font.system(.body, design: .monospaced)` or SF Mono
+| Token | Face | Use |
+|-------|------|-----|
+| `eyebrow` | SF Pro Condensed, caption, semibold | Section labels |
+| `stepTitle` | SF Pro Condensed, title2, bold | Content titles |
+| `cardTitle` | SF Pro, headline | Card titles |
+| `body` / `detail` | SF Pro body / subheadline | Reading text |
+| `stat` | SF Pro, subheadline, medium, monospaced digits | Counts |
+| `statLabel` | SF Mono, caption, medium | Stat captions |
+| `readoutM` | SF Pro Rounded, title, bold, monospaced digits | Dice totals |
+| `readoutL` | SF Pro Rounded, bold, 64 pt base | TN and victory numerals |
 
-Custom display fonts only if they still scale with Dynamic Type; document exception in Verification when added.
+Code: `DesignSystem/Tokens/TMFont.swift`. Text styles follow Dynamic Type. `readoutL` is `TMFont.readoutL(size:)`; call sites scale a 64 pt base with `@ScaledMetric` relative to `.largeTitle` (`TNGauge`, `VictoryView`).
+
+## Spacing, radius, motion
+
+| Token | Values |
+|-------|--------|
+| `TMSpace` | 2, 4, 8, 12, 16, 24, 32 (`xxs` through `xxl`) |
+| `TMRadius` | chip 8, card 16, readout 20 |
+| `TMMotion` | state 0.25 s, reveal 0.35 s, phase 0.4 s, drain 0.45 s. Reduce Motion uses 0.15 s |
+
+`TMHaptics` maps game events to `.sensoryFeedback` and reads `hapticsEnabled` (default on). Files: `DesignSystem/Tokens/TMSpace.swift`, `TMRadius.swift`, `TMMotion.swift`, `TMHaptics.swift`.
 
 ## Components (content layer)
 
@@ -35,7 +55,7 @@ Custom display fonts only if they still scale with Dynamic Type; document except
 | `PipTrack` | Armor/structure; large-text layout variant |
 | `DiceReadout` | 2D6 |
 | `TNGauge` | Large TN + odds (hero content, not glass) |
-| `PhasePromptBanner` | Text-first coach line |
+| `CoachPrompt` | Text-first coach line (`PhasePromptBanner` name in older notes) |
 | `EmptyState` | Title + CTA |
 | `ForceUnitCard` | Roster row content |
 
@@ -51,10 +71,6 @@ Apply `glassEffect` **after** layout modifiers. Match container spacing to layou
 ## Touch targets
 
 Minimum 44×44 pt. Primary Roll / Apply larger.
-
-## Motion
-
-Respect Reduce Motion: skip morph flourishes; keep discrete state updates.
 
 ## Implemented tokens (U0)
 
@@ -105,7 +121,7 @@ Type, spacing, radius, motion, and haptics: `TMFont`, `TMSpace`, `TMRadius`, `TM
 | `InfoButton` / `InfoContent` | `DesignSystem/InfoButton.swift`, `DesignSystem/Components/InfoContent.swift` |
 | `InlineHelp` | `DesignSystem/Components/InlineHelp.swift` |
 
-`WeightGlyph` is deferred. Battle wiring in this pass is dice (`DieFacePicker` / `DiceTray`) and Unit Focus pips (`PipTrack`) only.
+`WeightGlyph` is not in the tree. Battle, Play, Force, Rules, Settings, and the sheets compose these components. Dice entry is `DieFacePicker` inside `DiceTray`. “Let the app roll” is `DiceModeLink`.
 
 ## Verification
 
@@ -113,5 +129,5 @@ Type, spacing, radius, motion, and haptics: `TMFont`, `TMSpace`, `TMRadius`, `TM
 |-------|-------|
 | Target release | 1.0.0 |
 | Last verified | 2026-10-28 |
-| Commit | ui/overhaul (uncommitted) |
-| Code paths | `DesignSystem/Tokens/`, `DesignSystem/Components/`, `Resources/Assets.xcassets/Colors/`, `App/AppPreferences.swift` |
+| Commit | `b9acebb` (tag `0.2.0`) |
+| Code paths | `DesignSystem/Tokens/`, `DesignSystem/Components/`, `DesignSystem/AccessibilityID.swift`, `Resources/Assets.xcassets/Colors/`, `App/AppPreferences.swift`, `App/TableMechApp.swift` |

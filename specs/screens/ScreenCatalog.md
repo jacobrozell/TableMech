@@ -34,7 +34,7 @@ Root tabs
 |----|--------|------|-------|------|
 | `root.tabs` | Root `TabView` (Liquid Glass) | Screen | Both | [AppShellSpec](../AppShellSpec.md), [IOS26PlatformSpec](../IOS26PlatformSpec.md) |
 | `play.home` | Play **shell** (resume + routes to mode home) | Screen | Both | [ModeHomeSpec](../features/ModeHomeSpec.md) |
-| `force.roster` | Force **shell** → mode-specific list | Screen | Both | [RosterSpec](../features/RosterSpec.md) |
+| `force.as.list` | Force tab. Ridge Line roster, or the match in progress | Screen | Both | [RosterSpec](../features/RosterSpec.md) |
 | `rules.home` | Rules browser home | Screen | Both | [RulesReferenceSpec](../features/RulesReferenceSpec.md) |
 | `settings.home` | Settings | Screen | Both | [SettingsSpec](../features/SettingsSpec.md) |
 
@@ -45,7 +45,8 @@ Root tabs
 | ID | Screen | Type | Primary job | Release |
 |----|--------|------|-------------|---------|
 | `play.modePicker` | Choose Alpha Strike or Classic | Screen | Pick ruleset | Classic gated |
-| `play.resumeBanner` | Resume in-progress match | Banner on home | Continue | MVP |
+| `play.resumeBanner` | Resume in-progress match | `ResumeCard` on Play | Continue | MVP |
+| `play.classicComingSoon` | Classic BattleTech row on Play | Row | Opens the coming-soon sheet | MVP |
 | `play.matchHistory` | Past matches list | Screen | Review | Planned |
 | `play.matchDetail` | Match summary | Screen | Review | Planned |
 
@@ -56,20 +57,22 @@ Root tabs
 | ID | Screen | Type | Maps from HTML | Spec |
 |----|--------|------|----------------|------|
 | `as.modeHome` | Alpha Strike home | Screen | (new) | ModeHome |
-| `as.gettingStarted` | Pre-game checklist + card literacy | Screen | Set up | GettingStarted |
-| `as.howToPlay` | Ridge Line app-flow walkthrough | Screen | (new) | ModeHome |
+| `as.gettingStarted` | Pre-game checklist + sample card | Push from Play | Set up | GettingStarted |
+| `as.howToPlay` | Ridge Line app-flow walkthrough | Push from Play | (new) | ModeHome |
 | `as.scenarios` | First games catalog | Screen | First games | GuidedMission |
-| `as.mission.ridgeLine.setup` | Ridge Line setup (forces + table) | Screen | Mission steps 1–2 | GuidedMission |
+| `as.mission.setup` | Table setup, first step of the battle cover. Stage id on that step is `as.ridge.tablePrep`. Checks are session-local and do not block Start battle | Step | Mission setup | BattleTable |
+| `as.mission.ridgeLine.setup` | Same step as `as.mission.setup` for Ridge Line | Step | Mission steps 1–2 | GuidedMission |
 | `as.mission.fullLances.setup` | Full Lances setup | Screen | First games G2 | GuidedMission (v1.x) |
-| `as.battle` | Battle table | Screen | Mission step 3 + turn bar | BattleTable |
-| `as.battle.phaseDock` | Phase / Unit / Attack / Score dock | Chrome | Sticky turn bar | BattleTable |
-| `as.initiative` | Initiative roller / coach | Sheet | Turn · Initiative | BattleTable |
-| `as.moveCoach` | Movement mode coach | Sheet / panel | Move | BattleTable |
-| `as.sator` | SATOR attack resolver (+ apply damage on hit) | Sheet | Shoot | SATORAttack |
-| `as.critRoll` | Critical table roller (after structure bite / natural 12) | Sheet | Damage crit table | BattleTable / SATORAttack |
-| `as.heatCoach` | Heat effects reference | Sheet | Damage · Heat | Rules / UnitFocus |
+| `as.battle` | Battle table | Screen | Turn, phase track, side, coach step | BattleTable |
+| `as.battle.phaseDock` | Coach secondary + primary | Chrome | Glass dock | BattleTable |
+| `as.initiative` | Initiative dice, inline on the battle step | Step | Turn · Roll | BattleTable |
+| `as.moveCoach` | Movement modes on the movement step | Step | Move | BattleTable |
+| `as.sator` | Shot solver, title **Solve a shot** | Sheet | Shoot | SATORAttack |
+| `as.critRoll` | Critical table roller, after the solver dismisses | Sheet | Damage crit table | BattleTable / SATORAttack |
+| `as.battle.log` | Match log | Sheet | Toolbar “What just happened” | BattleTable |
+| `as.heatCoach` | Heat effects reference | Sheet | Damage · Heat | Planned |
 | `as.physicalCoach` | Physical attack helper | Sheet | Damage · Physical | Planned (Game 2) |
-| `as.victory` | Victory / end match | Screen | Mission winning | GuidedMission |
+| `as.victory` | Victory. Structure tally; shot stats parsed from log sentences when any exist | Screen | Mission winning | GuidedMission / BattleTable |
 | `as.unitFocus` | Unit Focus sheet | Sheet | Roster unit card | UnitFocus |
 
 ---
@@ -78,10 +81,10 @@ Root tabs
 
 | ID | Screen | Type | Maps from HTML | Spec |
 |----|--------|------|----------------|------|
-| `force.as.list` | Lance roster + PV bar | Screen | Roster | Roster |
-| `force.as.unitEdit` | Edit stats / flip variant | Screen or push | Roster unit | Roster |
-| `force.as.import` | MUL paste import | Sheet | Roster import | Roster |
-| `force.as.addUnit` | Add blank / pick template | Sheet | Add a 'Mech | Roster |
+| `force.as.list` | Side A / Side B roster + PV bar | Screen | Roster | Roster |
+| `force.as.unitEdit` | Edit stats / flip variant | Screen or push | Roster unit | Planned |
+| `force.as.import` | MUL paste import | Sheet | Roster import | Planned |
+| `force.as.addUnit` | Add blank / pick template | Sheet | Add a 'Mech | Planned |
 
 ---
 
@@ -100,13 +103,13 @@ Root tabs
 
 ---
 
-## Classic mode (planned / gated)
+## Classic mode
 
-Screen map only until `PlayCapabilities` for Classic ship. Full behavior: [ClassicModeSpec](../features/ClassicModeSpec.md).
+`classic.modeHome` is the coming-soon sheet. The rows under it stay planned until Classic play ships. Full behavior: [ClassicModeSpec](../features/ClassicModeSpec.md).
 
 | ID | Screen | Type | Job |
 |----|--------|------|-----|
-| `classic.modeHome` | Classic home | Screen | Entry |
+| `classic.modeHome` | Classic coming soon | Sheet from Play | Explains record sheets, heat, and hit locations. Primary action plays Ridge Line |
 | `classic.gettingStarted` | Hex / record-sheet orientation | Screen | Onboarding |
 | `classic.battle` | Classic battle table | Screen | Phases |
 | `classic.phaseDock` | Classic phase dock | Chrome | Init→Heat |
@@ -128,9 +131,9 @@ Screen map only until `PlayCapabilities` for Classic ship. Full behavior: [Class
 
 | ID | Screen | Type | Spec |
 |----|--------|------|------|
-| `settings.home` | Appearance, haptics, defaults | Screen | Settings |
+| `settings.home` | Dice default, haptics, keep screen awake, theme, about, legal, delete | Screen | Settings |
 | `settings.legal` | Privacy / support / accessibility / disclaimer | Links | Settings |
-| `settings.deleteData` | Confirm delete all local data | Alert | Settings |
+| `settings.deleteAll` | Delete saved games, with a confirm dialog | Button | Settings |
 
 ---
 
@@ -142,7 +145,7 @@ Screen map only until `PlayCapabilities` for Classic ship. Full behavior: [Class
 | `chrome.errorBanner` | Recoverable error | All |
 | `chrome.diceResult` | 2D6 readout | Initiative, SATOR, Crit |
 | `chrome.pipTrack` | Armor/structure pips | Roster, Unit Focus |
-| `chrome.phaseChip` | Phase selector | Battle table |
+| `chrome.phaseChip` | Read-only phase track (Roll, Move, Shoot, Clean up) | Battle header |
 
 ---
 
@@ -164,17 +167,15 @@ Screen map only until `PlayCapabilities` for Classic ship. Full behavior: [Class
 
 ## Accessibility identifiers
 
-Convention: `{area}.{screen}.{control}` — e.g. `as.sator.roll`, `force.as.list.unit.{id}`, `as.battle.phaseDock.next`.
-
-Per-screen VoiceOver scripts live under `accessibility/` once UI exists.
+Convention: `{area}.{screen}.{control}` — e.g. `as.sator.resolve`, `force.as.unit.{uuid}`, `as.battle.phaseDock.next`. The live set is in [AccessibilitySpec](../AccessibilitySpec.md).
 
 ## Verification
 
 | Field | Value |
 |-------|-------|
 | Target release | 1.0.0 (AS subset) |
-| Last verified | 2026-08-21 |
-| Commit | — |
-| Code paths | *catalog only* |
+| Last verified | 2026-10-28 |
+| Commit | `b9acebb` (tag `0.2.0`) |
+| Code paths | `App/RootTabView.swift`, `Features/Play/PlayHomeView.swift`, `ClassicComingSoonSheet.swift`, `Features/Battle/BattleFlowView.swift`, `Steps/TableSetupStep.swift`, `EventLogSheet.swift`, `VictoryView.swift` |
 
-**IA note:** `play.home` / `force.roster` are shells; do not implement a second competing “home” without updating AppShellSpec.
+**IA note:** `play.home` is the Play shell. The Force tab’s screen id is `force.as.list`. Do not add a second home without updating AppShellSpec.

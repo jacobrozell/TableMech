@@ -89,11 +89,22 @@ Ridge Line: OV/physical/withdrawal = `false`. Free Battle defaults: all `true` (
 - App refuses unknown schema (fail soft → empty state + telemetry)
 - User data references `GameModeId` + pack version at write time for migrations
 
+## Rules topics
+
+`RulesTopicDTO` (`Data/Content/ContentDTOs.swift`) and `as-rules-topics.json` include two optional fields:
+
+| Field | When present | When omitted |
+|-------|----------------|--------------|
+| `summary` | One-line row subtitle on Rules | First sentence of the first section (`RulesGroup.summary`) |
+| `group` | `start`, `during`, or `reference` | `RulesGroup.resolve` maps by topic id |
+
+Sections stay `{ heading, body }`. The pack has no structured table block.
+
 ## Verification
 
 | Field | Value |
 |-------|-------|
 | Target release | 1.0.0 |
-| Last verified | 2026-08-21 |
-| Commit | — |
-| Code paths | *not implemented* |
+| Last verified | 2026-10-28 |
+| Commit | `b9acebb` (tag `0.2.0`) |
+| Code paths | `Data/Content/ContentDTOs.swift` (`RulesTopicDTO.summary`, `RulesTopicDTO.group`), `Resources/Content/AlphaStrike/as-rules-topics.json`, `Features/Play/RulesHomeView.swift` (`RulesGroup`) |
