@@ -1,6 +1,8 @@
 # TableMech
 
-BattleTech guided matches for iPhone and iPad (iOS 26). Alpha Strike Ridge Line MVP; Classic Coming soon.
+BattleTech tableside companion for iPhone and iPad (iOS 26). **0.2.0** on `main` is the Ridge Line tableside UI: design tokens, battle layout, sheets, and rebuilt Play, Force, Rules, and Settings screens. **0.1.0** was the first playable slice (stock lists, auto and manual shot rolls). Classic stays Coming soon.
+
+Plan: [docs/development/ui-overhaul-plan.md](docs/development/ui-overhaul-plan.md). Specs: [specs/](specs/).
 
 ## Build
 
