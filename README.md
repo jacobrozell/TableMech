@@ -28,4 +28,17 @@ Open `TableMech.xcodeproj` in Xcode 26+.
 
 Start at [AGENTS.md](AGENTS.md). Owner decisions: [docs/product-readiness.md](docs/product-readiness.md).
 
-Team `7JT2JB89AV` · Bundle `com.jacobrozell.tablemech`
+Team `7JT2JB89AV` · Bundle `com.jacobrozell.tablemech` · Version **0.2.0 (1)**
+
+Legal pages live in [`docs/`](docs/) and are linked from Settings. After they are on `main`, publish GitHub Pages from the `/docs` folder so these URLs resolve:
+
+- https://jacobrozell.github.io/TableMech/privacy.html
+- https://jacobrozell.github.io/TableMech/support.html
+- https://jacobrozell.github.io/TableMech/accessibility.html
+
+Archive for TestFlight (automatic signing, team `7JT2JB89AV`):
+
+```bash
+xcodebuild -scheme TableMech -destination 'generic/platform=iOS' \
+  -archivePath build/TableMech.xcarchive archive -allowProvisioningUpdates
+```

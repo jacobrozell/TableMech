@@ -43,6 +43,8 @@ targets:
           - "**/README.md"
       - path: Resources/Assets.xcassets
         buildPhase: resources
+      - path: Resources/PrivacyInfo.xcprivacy
+        buildPhase: resources
       - path: Resources/Content
         buildPhase: resources
         type: folder

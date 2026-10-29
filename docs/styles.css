@@ -1,0 +1,181 @@
+/* TableMech — GitHub Pages (docs/) */
+
+:root {
+  color-scheme: light dark;
+  --bg: #f7f6f4;
+  --card: #ffffff;
+  --text: #1a1d21;
+  --muted: #5c6168;
+  --accent: #c98a00;
+  --border: #d8d5d0;
+  --link: #8a5e00;
+  --max-width: 42rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #1a1d21;
+    --card: #24282e;
+    --text: #f4f1ea;
+    --muted: #b0b4ba;
+    --border: #3a4048;
+    --link: #e0b44a;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  line-height: 1.6;
+  color: var(--text);
+  background: var(--bg);
+}
+
+.skip {
+  position: absolute;
+  left: -9999px;
+  top: auto;
+}
+
+.skip:focus {
+  left: 1rem;
+  top: 1rem;
+  z-index: 100;
+  padding: 0.5rem 1rem;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+}
+
+.site-header,
+.site-footer {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 1.5rem 1.25rem;
+}
+
+.site-header {
+  padding-bottom: 0.5rem;
+}
+
+.site-header h1 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.site-header p {
+  margin: 0.25rem 0 0;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+nav.site-nav {
+  max-width: var(--max-width);
+  margin: 0 auto 1rem;
+  padding: 0 1.25rem;
+}
+
+nav.site-nav ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+}
+
+nav.site-nav a {
+  color: var(--link);
+  text-decoration: none;
+  font-size: 0.95rem;
+}
+
+nav.site-nav a[aria-current="page"] {
+  color: var(--text);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+main {
+  max-width: var(--max-width);
+  margin: 0 auto 2rem;
+  padding: 1.5rem 1.25rem;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+}
+
+main h2 {
+  margin-top: 0;
+  font-size: 1.35rem;
+}
+
+main h3 {
+  margin-top: 1.75rem;
+  font-size: 1.05rem;
+}
+
+main p,
+main ul {
+  margin: 0.75rem 0;
+}
+
+main ul {
+  padding-left: 1.25rem;
+}
+
+main a {
+  color: var(--link);
+}
+
+.meta {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.card-grid {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1.25rem;
+}
+
+.card-grid a {
+  display: block;
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  text-decoration: none;
+  color: var(--text);
+  background: var(--bg);
+}
+
+.card-grid a:hover,
+.card-grid a:focus {
+  border-color: var(--accent);
+}
+
+.card-grid strong {
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+.card-grid span {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.site-footer {
+  color: var(--muted);
+  font-size: 0.85rem;
+  padding-top: 0;
+}
+
+.site-footer p {
+  margin: 0.25rem 0;
+}
